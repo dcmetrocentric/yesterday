@@ -298,11 +298,14 @@ html, body { overflow-x: hidden; }
       return `YESTERDAY  ${dayLabel}
 ${emojisLine}
 ${gridLine}
+${solvedLine}`;
+  }
+catch(e) {
+      return `YESTERDAY  ${dayLabel}
+${emojisLine}
+${gridLine}
 ${solvedLine}
-https://dcmetrocentric.github.io/yesterday/`;
-    } catch(e) {
-      return `YESTERDAY
-https://dcmetrocentric.github.io/yesterday/`;
+<https://dcmetrocentric.github.io/yesterday/>`;
     }
   }
 
