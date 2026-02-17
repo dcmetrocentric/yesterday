@@ -265,7 +265,17 @@ html, body { overflow-x: hidden; }
 
 <script>
 
-  function storyImage(city, headline, i){
+  
+  function buildShareText(state){
+    // state: {dayLabel, emojisLine, gridLine, solvedLine}
+    const dayLabel = state?.dayLabel || dayKey || "";
+    const emojisLine = state?.emojisLine || (currentPack?.cards?.map(c=>c.emoji).join("") || "");
+    const gridLine = state?.gridLine || (guessGrid || "");
+    const solvedLine = state?.solvedLine || (solved ? `Solved ${guesses}/5` : `Revealed ${guesses}/5`);
+    return `YESTERDAY  ${dayLabel}\n${emojisLine}\n${gridLine}\n${solvedLine}\nhttps://dcmetrocentric.github.io/yesterday/`;
+  }
+
+function storyImage(city, headline, i){
     const q = encodeURIComponent((city + " " + (headline||"")).replace(/[^a-zA-Z0-9\s]/g," ").trim());
     return `https://source.unsplash.com/featured/800x500?${q}`;
   }
@@ -893,7 +903,7 @@ function finish(win){
 // share -> native share sheet or SMS compose
 document.getElementById("shareBtn").onclick=async()=>{
   const text=document.getElementById("shareBox").textContent;
-  if(navigator.share){ try{ await navigator.share({ url: "https://dcmetrocentric.github.io/yesterday//" }); return; }catch(e){} }
+  if(navigator.share){ try{ await navigator.share({ title: "Yesterday", text: buildShareText(), url: "https://dcmetrocentric.github.io/yesterday/" }); return; }catch(e){} }
   window.location.href="sms:?&body=https://dcmetrocentric.github.io/yesterday//"+encodeURIComponent(text);
 };
 
