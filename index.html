@@ -1,9 +1,21 @@
 <!doctype html>
 <html lang="en">
 <head>
+
+  <!-- Social preview -->
+  <meta property="og:title" content="Yesterday — Guess the City">
+  <meta property="og:description" content="Four clues. One city. Share your score and challenge friends.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dcmetrocentric.github.io/yesterday/">
+  <meta property="og:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fdcmetrocentric.github.io%2Fyesterday%2F?w=1200">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Yesterday — Guess the City">
+  <meta name="twitter:description" content="Four clues. One city. Share your score and challenge friends.">
+  <meta name="twitter:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fdcmetrocentric.github.io%2Fyesterday%2F?w=1200">
+
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>YESTERDAY</title>
+<title>Yesterday — Guess the City</title>
 <style>
 :root{
   --bg:#F2F0EA;--card:#fff;--ink:#0F172A;--muted:#64748B;--line:#E7E2D8;--radius:20px;
@@ -115,6 +127,44 @@ button:disabled{opacity:.5}
 
 
 .emojiFront{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:88px;line-height:1;}
+
+
+/* --- Mobile polish: centered layout + no horizontal scroll anywhere --- */
+html, body { width:100%; overflow-x:hidden; }
+*, *::before, *::after { box-sizing:border-box; }
+
+@media (max-width: 520px){
+  /* Center the whole game on phone with a touch more right padding */
+  body{ padding-left:16px !important; padding-right:18px !important; }
+  .shell, .wrap, .container, .main { width:100% !important; max-width: 520px !important; margin: 0 auto !important; }
+}
+
+/* Modal sizing: never require left/right scrolling */
+.modal, .dialog, .sheet, .overlay .panel{
+  max-width: 720px;
+  width: min(720px, 94vw);
+}
+@media (max-width: 520px){
+  .modal, .dialog, .sheet, .overlay .panel{
+    width: 94vw !important;
+    max-width: 94vw !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+  .modal * { max-width: 100%; }
+}
+
+/* Front page grid: collapse to one column on small screens to avoid side scroll */
+@media (max-width: 520px){
+  .frontpage, .fp-grid, .front-grid, .storiesGrid, .stories-grid{
+    display:grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* Ensure any fixed-width tiles/images never overflow */
+img{ max-width:100%; height:auto; }
 
 </style>
 </head>
@@ -738,7 +788,7 @@ function finish(win){
 
   const storyEmojis = chosenCards.map(c=>c.emoji).join("");
   const boxes = guesses.map(heat).join("");
-  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcemtrocentric.github.io/yesterday`;
+  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcmetrocentric.github.io/yesterday`;
 
   document.getElementById("modal").style.display="flex";
   document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
