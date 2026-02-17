@@ -166,6 +166,28 @@ img{ max-width:100%; height:auto; }
   .stories{grid-template-columns:1fr;}
 }
 
+
+/* --- Modal centering + phone fit --- */
+#modal{ align-items:center !important; justify-content:center !important; }
+#modal .box{ width:min(720px, 94vw) !important; margin:0 auto !important; }
+@media (max-width: 520px){
+  #modal .box{ width:94vw !important; max-width:94vw !important; }
+  /* Keep everything visible: tighten paddings and type */
+  #modal .box{ padding:14px !important; }
+  #modal .top{ margin-bottom:10px !important; }
+  #modal .share{ padding:10px !important; font-size:14px !important; line-height:1.2 !important; }
+  /* Front Page back to 2x2 grid like cards */
+  #stories{ display:grid !important; grid-template-columns: 1fr 1fr !important; gap:10px !important; }
+  .story{ border-radius:14px !important; }
+  .storyImg{ height:64px !important; }
+  .storyImg img{ height:64px !important; object-fit:cover !important; }
+  .storyTitle a{ font-size:13px !important; line-height:1.15 !important; }
+  .storyMeta{ font-size:12px !important; }
+  /* reduce overall modal height so it doesn't need horizontal/vertical scroll */
+  #modal .box{ max-height: 92vh !important; overflow:hidden !important; }
+  #stories{ overflow:hidden !important; }
+}
+
 </style>
 </head>
 <body>
@@ -231,35 +253,26 @@ img{ max-width:100%; height:auto; }
 function previewImage(url){
   return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=900`;
 }
-
-  async function resolvePreviewFromGoogleNewsSearch(searchUrl){
-    try{
-      const rssUrl = searchUrl.replace("https://news.google.com/search?", "https://news.google.com/rss/search?");
-      const proxy = "https://r.jina.ai/" + rssUrl;
-      const txt = await fetch(proxy, {cache:"force-cache"}).then(r=>r.text());
-      const m1 = txt.match(/media:content[^>]*url="([^"]+)"/i);
-      if(m1 && m1[1]) return {img:m1[1], link:null};
-      const m2 = txt.match(/<item>[\s\S]*?<link>([^<]+)<\/link>/i);
-      if(m2 && m2[1]){
-        const link = m2[1].trim();
-        return {img:previewImage(link), link};
-      }
     }catch(e){}
     return {img:previewImage(searchUrl), link:null};
   }
 
   async function hydrateFrontPageImages(){
     const tiles = Array.from(document.querySelectorAll(".story"));
-    await Promise.all(tiles.map(async (tile)=>{
+    await Promise.all(tiles.map(async (tile, idx)=>{
       const a = tile.querySelector("a");
       const img = tile.querySelector("img");
-      if(!a || !img) return;
-      const url = a.getAttribute("href") || "";
+      if(!img) return;
       if(img.dataset.hydrated === "1") return;
-      const res = await resolvePreviewFromGoogleNewsSearch(url);
-      img.src = res.img;
+      const tags = img.getAttribute("data-tags") || "";
+      const seed = img.getAttribute("data-seed") || String(idx);
+      try{
+        const url = await resolveImg("fp:"+seed, tags, seed);
+        img.src = url;
+      }catch(e){
+        img.src = FALLBACK;
+      }
       img.dataset.hydrated = "1";
-      if(res.link) a.href = res.link;
     }));
   }
 
@@ -820,7 +833,7 @@ function finish(win){
 
   const storyEmojis = chosenCards.map(c=>c.emoji).join("");
   const boxes = guesses.map(heat).join("");
-  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcmetrocentric.github.io/yesterday`;
+  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcmetrocentric.github.io/yesterday/`;
 
   document.getElementById("modal").style.display="flex";
   document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
@@ -838,7 +851,7 @@ function finish(win){
     el.className="story";
     el.innerHTML=`
       <div class="storyImg">
-        <img src="${previewImage(st.url)}" onerror="this.src='${FALLBACK}'" alt="" referrerpolicy="no-referrer" crossorigin="anonymous">
+        <img src="${FALLBACK}" alt="" referrerpolicy="no-referrer" crossorigin="anonymous" data-tags="${st.headline} ${answer.name}" data-seed="${dayKey}-${st.headline}">
       </div>
       <div class="storyBody">
         <p class="storyTitle"><a href="${st.url}" target="_blank" rel="noopener noreferrer">${st.headline}</a></p>
