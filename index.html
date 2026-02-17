@@ -3,16 +3,7 @@
 <head>
 
   <!-- Social preview -->
-  <meta property="og:title" content="Yesterday — Guess the City">
-  <meta property="og:description" content="Four clues. One city. Share your score and challenge friends.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://dcmetrocentric.github.io/yesterday/">
-  <meta property="og:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fdcmetrocentric.github.io%2Fyesterday%2F?w=1200">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Yesterday — Guess the City">
-  <meta name="twitter:description" content="Four clues. One city. Share your score and challenge friends.">
-  <meta name="twitter:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fdcmetrocentric.github.io%2Fyesterday%2F?w=1200">
-
+                  
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>Yesterday — Guess the City</title>
@@ -166,6 +157,15 @@ html, body { width:100%; overflow-x:hidden; }
 /* Ensure any fixed-width tiles/images never overflow */
 img{ max-width:100%; height:auto; }
 
+
+/* --- Modal centering + mobile front page grid --- */
+.modal{padding:14px 18px;}
+.box{margin:0 auto; overflow-y:auto;}
+@media (max-width: 520px){
+  .box{width:94vw; max-width:94vw; }
+  .stories{grid-template-columns:1fr;}
+}
+
 </style>
 </head>
 <body>
@@ -231,6 +231,38 @@ img{ max-width:100%; height:auto; }
 function previewImage(url){
   return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=900`;
 }
+
+  async function resolvePreviewFromGoogleNewsSearch(searchUrl){
+    try{
+      const rssUrl = searchUrl.replace("https://news.google.com/search?", "https://news.google.com/rss/search?");
+      const proxy = "https://r.jina.ai/" + rssUrl;
+      const txt = await fetch(proxy, {cache:"force-cache"}).then(r=>r.text());
+      const m1 = txt.match(/media:content[^>]*url="([^"]+)"/i);
+      if(m1 && m1[1]) return {img:m1[1], link:null};
+      const m2 = txt.match(/<item>[\s\S]*?<link>([^<]+)<\/link>/i);
+      if(m2 && m2[1]){
+        const link = m2[1].trim();
+        return {img:previewImage(link), link};
+      }
+    }catch(e){}
+    return {img:previewImage(searchUrl), link:null};
+  }
+
+  async function hydrateFrontPageImages(){
+    const tiles = Array.from(document.querySelectorAll(".story"));
+    await Promise.all(tiles.map(async (tile)=>{
+      const a = tile.querySelector("a");
+      const img = tile.querySelector("img");
+      if(!a || !img) return;
+      const url = a.getAttribute("href") || "";
+      if(img.dataset.hydrated === "1") return;
+      const res = await resolvePreviewFromGoogleNewsSearch(url);
+      img.src = res.img;
+      img.dataset.hydrated = "1";
+      if(res.link) a.href = res.link;
+    }));
+  }
+
 // --- Image resolver (no fetch, works from local file) ---
   const _imgCache = new Map(); // key -> chosen url
   function imgCandidates(tags, seed){
