@@ -6,7 +6,7 @@
   <meta property="og:title" content="Yesterday — Guess the City">
   <meta property="og:description" content="Four clues. One city. Share your score and challenge friends.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://dcmetrocentric.github.io/yesterday/">
+  <meta property="og:url" content="https://dcmetrocentric.github.io/yesterday//">
   <meta property="og:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fdcmetrocentric.github.io%2Fyesterday%2F?w=1200">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Yesterday — Guess the City">
@@ -198,6 +198,19 @@ html, body { overflow-x: hidden; }
   .overlay .panel { max-height: 92vh; overflow-y: auto; overflow-x: hidden; }
 }
 
+
+/* Answer emphasis */
+#answerLine{font-weight:800;font-size:16px;}
+
+
+/* Front Page titles-only list */
+.fpList{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media (max-width:520px){ .fpList{gap:10px;} }
+.fpItem{padding:10px;border:1px solid rgba(0,0,0,.10);border-radius:14px;background:#fff;}
+.fpItem a{text-decoration:none;color:inherit;display:block;}
+.fpTitle{font-family:Georgia,"Times New Roman",Times,serif;font-weight:700;font-size:15px;line-height:1.15;}
+.fpSource{margin-top:6px;font-size:12px;opacity:.75;}
+
 </style>
 </head>
 <body>
@@ -249,7 +262,7 @@ html, body { overflow-x: hidden; }
         <b>Yesterday’s Front Page</b>
         <span id="answerLine"></span>
       </div>
-      <div class="stories" id="stories"></div>
+      <div class="stories" id="stories" class="fpList"></div>
     </div>
 
     <div class="modalBtns">
@@ -862,7 +875,7 @@ function finish(win){
 
   const storyEmojis = chosenCards.map(c=>c.emoji).join("");
   const boxes = guesses.map(heat).join("");
-  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcmetrocentric.github.io/yesterday`;
+  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcmetrocentric.github.io/yesterday/`;
 
   document.getElementById("modal").style.display="flex";
   document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
@@ -872,20 +885,16 @@ function finish(win){
   document.getElementById("miniStats").textContent = `Streak ${s.cur||0} • Max ${s.max||0} • Played ${s.played} • Win ${winPct}%`;
   document.getElementById("shareBox").textContent = text;
 
-  // render stories (all tied to the city pack)
+  // render stories (titles only)
   const stories=document.getElementById("stories");
   stories.innerHTML="";
   chosenStories.forEach((st)=>{
     const el=document.createElement("div");
-    el.className="story";
-    el.innerHTML=`
-      <div class="storyImg">
-        <img src="${storyImage(cityPack.city, st.headline, i)}" onerror="this.src='${FALLBACK}'" alt="" referrerpolicy="no-referrer" crossorigin="anonymous" onerror="this.onerror=null;this.src=storyImageFallback(cityPack.city, st.headline, i);">
-      </div>
-      <div class="storyBody">
-        <p class="storyTitle"><a href="${st.url}" target="_blank" rel="noopener noreferrer">${st.headline}</a></p>
-        <div class="storyMeta">${st.source}</div>
-      </div>`;
+    el.className="fpItem";
+    el.innerHTML = `<a href="${st.url}" target="_blank" rel="noopener noreferrer">
+        <div class="fpTitle">${st.headline}</div>
+        <div class="fpSource">${st.source}</div>
+      </a>`;
     stories.appendChild(el);
   });
 }
