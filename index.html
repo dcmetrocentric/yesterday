@@ -285,16 +285,29 @@ html, body { overflow-x: hidden; }
 
 <script>
 
-  
   function buildShareText(){
-    const dayLabel = (typeof dayKey !== "undefined" ? dayKey : "");
-    const emojisLine = (typeof currentPack !== "undefined" && currentPack?.cards ? currentPack.cards.map(c=>c.emoji||"").join("") : "");
-    const gridLine = (typeof guessGrid !== "undefined" ? guessGrid : "");
-    const solvedLine = (typeof solved !== "undefined" && solved ? `Solved ${guesses}/5` : `Revealed ${guesses}/5`);
-    return `YESTERDAY  ${dayLabel}\n${emojisLine}\n${gridLine}\n${solvedLine}`;
+    try {
+      const dayLabel = (typeof dayKey !== "undefined") ? dayKey : "";
+      const emojisLine = (typeof currentPack !== "undefined" && currentPack?.cards)
+        ? currentPack.cards.map(c=>c.emoji||"").join("")
+        : "";
+      const gridLine = (typeof guessGrid !== "undefined") ? guessGrid : "";
+      const solvedLine = (typeof solved !== "undefined" && solved)
+        ? `Solved ${guesses}/5`
+        : `Revealed ${guesses}/5`;
+      return `YESTERDAY  ${dayLabel}
+${emojisLine}
+${gridLine}
+${solvedLine}
+https://dcmetrocentric.github.io/yesterday/`;
+    } catch(e) {
+      return `YESTERDAY
+https://dcmetrocentric.github.io/yesterday/`;
+    }
   }
 
-function storyImage(city, headline, i){
+
+  function storyImage(city, headline, i){
     const q = encodeURIComponent((city + " " + (headline||"")).replace(/[^a-zA-Z0-9\s]/g," ").trim());
     return `https://source.unsplash.com/featured/800x500?${q}`;
   }
@@ -922,7 +935,7 @@ function finish(win){
 // share -> native share sheet or SMS compose
 document.getElementById("shareBtn").onclick=async()=>{
   const text=document.getElementById("shareBox").textContent;
-  if(navigator.share){ try{ await navigator.share({ title: "Yesterday", text: buildShareText(), url: "https://dcmetrocentric.github.io/yesterday/" }); return; }catch(e){} }
+  if(navigator.share){ try{ await navigator.share({text}); return; }catch(e){} }
   window.location.href="sms:?&body="+encodeURIComponent(text);
 };
 
