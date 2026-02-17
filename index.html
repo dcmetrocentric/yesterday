@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>YESTERDAY</title>
+<style>
+:root{
+  --bg:#F2F0EA;--card:#fff;--ink:#0F172A;--muted:#64748B;--line:#E7E2D8;--radius:20px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--ink);display:flex;justify-content:center;padding:14px 12px 24px}
+.shell{width:min(820px,100%)}
+
+/* Header */
+.topbar{
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:linear-gradient(135deg,rgba(31,78,121,.14),rgba(43,108,176,.08));
+  padding:14px 14px 12px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.brandWrap{min-width:0}
+.brand{font-weight:1000;letter-spacing:.05em;font-size:30px;line-height:1;margin:0}
+.sub{margin:6px 0 0;font-size:13px;font-weight:760;color:rgba(15,23,42,.78)}
+.rightMeta{text-align:right}
+.metaLine{font-size:11px;color:var(--muted);font-weight:900}
+.timer{margin-top:4px;font-weight:950;font-size:12px;color:rgba(15,23,42,.85)}
+
+/* Card shell */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.grid{padding:12px;display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+.flip{aspect-ratio:1/1;perspective:1200px}
+.flipInner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.8,.2,1);cursor:pointer;border-radius:18px}
+.flip[data-flipped="true"] .flipInner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:18px;overflow:hidden;border:1px solid var(--line);backface-visibility:hidden;background:#fff}
+.front img{width:100%;height:100%;object-fit:cover;display:block}
+.front .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.52))}
+.front .tag{position:absolute;left:10px;top:10px;background:rgba(255,255,255,.92);padding:5px 9px;border-radius:999px;font-size:11px;font-weight:950}
+.back{transform:rotateY(180deg);padding:12px;display:flex;align-items:center;justify-content:center;text-align:left}
+.back p{margin:0;font-size:13px;line-height:1.45;font-weight:680;color:rgba(15,23,42,.92)}
+
+/* Input */
+.play{padding:12px;border-top:1px solid var(--line);background:rgba(242,240,234,.6)}
+.play h2{margin:0 0 8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.inputWrap{flex:1;display:flex;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+input{border:0;outline:none;width:100%;font-size:15px}
+button{background:#0F172A;color:#fff;border:1px solid #0F172A;border-radius:12px;padding:10px 12px;font-weight:950}
+button:disabled{opacity:.5}
+.ghost{background:#fff;color:#0F172A;border:1px solid var(--line)}
+.panel{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.count{font-size:11px;color:var(--muted);font-weight:900;margin-top:6px}
+.error{display:none;color:#7D2020;font-size:12px;margin-top:6px}
+
+/* Modal (single-screen) */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:14px}
+.modal .box{
+  width:min(760px,100%);
+  background:#fff;border-radius:18px;border:1px solid var(--line);
+  padding:14px;
+  max-height:92vh;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.modalTop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.modalTop h3{margin:0;font-size:20px}
+.miniStats{font-size:12px;color:rgba(15,23,42,.8);font-weight:900}
+.shareMini{
+  font-family:ui-monospace,monospace;
+  font-size:12px;
+  white-space:pre-wrap;
+  border:1px solid var(--line);
+  background:#f7f6f2;
+  border-radius:12px;
+  padding:8px;
+  line-height:1.25;
+}
+.paper{
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+}
+.paperHead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 10px;background:rgba(242,240,234,.7);border-bottom:1px solid var(--line)}
+.paperHead b{letter-spacing:.12em;text-transform:uppercase;font-size:11px}
+.paperHead span{font-size:11px;color:var(--muted);font-weight:900}
+.stories{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:10px;background:#fff}
+.story{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.storyImg{height:78px;background:#eee}
+.storyImg img{width:100%;height:100%;object-fit:cover;display:block}
+.storyBody{padding:9px}
+.storyTitle{font-weight:950;font-size:12.5px;line-height:1.2;margin:0 0 5px}
+.storyMeta{font-size:11px;color:var(--muted);font-weight:900}
+.story a{color:inherit;text-decoration:none}
+.story a:hover{text-decoration:underline}
+.modalBtns{display:flex;gap:8px;justify-content:flex-end}
+@media (max-width:420px){
+  .brand{font-size:28px}
+  .stories{gap:7px}
+  .storyImg{height:70px}
+  .storyTitle{font-size:12px}
+}
+
+.card-front img, .fp-card img{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="brandWrap">
+      <div class="brand">YESTERDAY</div>
+      <div class="sub">What city was this?</div>
+    </div>
+    <div class="rightMeta">
+      <div class="metaLine" id="puzzleId"></div>
+      <div class="timer" id="timer"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid" id="grid"></div>
+
+    <div class="play">
+      <h2>Guess the city</h2>
+      <div class="row">
+        <div class="inputWrap">
+          <input id="guessInput" placeholder="Type a city" autocomplete="off" list="citylist">
+          <datalist id="citylist"></datalist>
+        </div>
+        <button id="submitBtn">Submit</button>
+        <button class="ghost" id="revealBtn">Reveal</button>
+      </div>
+      <div class="count" id="count">0/5 guesses</div>
+      <div class="error" id="error">Unknown city. Try a major city (e.g., Boston, Los Angeles).</div>
+      <div class="panel" id="feedback" style="display:none"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal" id="modal">
+  <div class="box">
+    <div class="modalTop">
+      <h3 id="resultTitle">Solved!</h3>
+      <div class="miniStats" id="miniStats"></div>
+    </div>
+
+    <div class="shareMini" id="shareBox"></div>
+
+    <div class="paper">
+      <div class="paperHead">
+        <b>Yesterday’s Front Page</b>
+        <span id="answerLine"></span>
+      </div>
+      <div class="stories" id="stories"></div>
+    </div>
+
+    <div class="modalBtns">
+      <button id="shareBtn">Share</button>
+      <button class="ghost" onclick="location.reload()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  // --- Image resolver (no fetch, works from local file) ---
+  const _imgCache = new Map(); // key -> chosen url
+  function imgCandidates(tags, seed){
+    const t = (tags || "").toString().trim().replace(/\s+/g," ").replace(/,+/g,",").replace(/^,|,$/g,"");
+    const encTags = encodeURIComponent(t.replace(/ /g,","));
+    const encSeed = encodeURIComponent(seed);
+    return [
+      `https://loremflickr.com/900/900/${encTags}?lock=${encSeed}`,
+      `https://source.unsplash.com/900x900/?${encTags}`,
+      `https://picsum.photos/seed/${encSeed}/900`
+    ];
+  }
+  function resolveImg(key, tags, seed){
+    if (_imgCache.has(key)) return Promise.resolve(_imgCache.get(key));
+    return new Promise((resolve) => {
+      const cands = imgCandidates(tags, seed);
+      let i = 0;
+      const probe = () => {
+        const url = cands[i] || cands[cands.length-1];
+        const im = new Image();
+        im.referrerPolicy = "no-referrer";
+        im.onload = () => { _imgCache.set(key, url); resolve(url); };
+        im.onerror = () => { i++; probe(); };
+        im.src = url;
+      };
+      probe();
+    });
+  }
+
+  function setSmartImg(imgEl, key, tags, seed){
+    imgEl.loading = "lazy";
+    imgEl.decoding = "async";
+    imgEl.referrerPolicy = "no-referrer";
+    imgEl.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Crect width='900' height='900' fill='%23d9dde3'/%3E%3C/svg%3E";
+    resolveImg(key, tags, seed).then(url => { imgEl.src = url; });
+  }
+
+
+// ----- date + countdown -----
+const now = new Date();
+const dayKey = now.toISOString().slice(0,10);
+document.getElementById('puzzleId').textContent = "Puzzle " + dayKey;
+
+function nextMidnight(){
+  const n=new Date(); n.setHours(24,0,0,0); return n;
+}
+function tick(){
+  const diff = nextMidnight() - new Date();
+  const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+  document.getElementById('timer').textContent = `Next puzzle in ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+setInterval(tick,1000); tick();
+
+// stable hash -> int
+function hashDate(key){
+  let h=5381;
+  for (let i=0;i<key.length;i++) h=((h<<5)+h)+key.charCodeAt(i);
+  return (h>>>0);
+}
+function makeRand(seed){
+  let s = seed>>>0;
+  return function(){
+    s = (1664525*s + 1013904223) >>> 0;
+    return s / 4294967296;
+  }
+}
+
+// ----- Images: use upload.wikimedia.org (direct) for best reliability -----
+function wikimediaUpload(path){ return "https://upload.wikimedia.org/wikipedia/commons/" + path; }
+const FALLBACK = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='%231F4E79'/><stop offset='1' stop-color='%232B6CB0'/></linearGradient></defs><rect width='800' height='800' fill='url(%23g)'/></svg>";
+
+// ----- Guessable cities (expanded) -----
+const CITIES=[
+  {name:"New York",lat:40.7128,lng:-74.0060},{name:"Los Angeles",lat:34.0522,lng:-118.2437},{name:"Chicago",lat:41.8781,lng:-87.6298},
+  {name:"Houston",lat:29.7604,lng:-95.3698},{name:"Phoenix",lat:33.4484,lng:-112.0740},{name:"Philadelphia",lat:39.9526,lng:-75.1652},
+  {name:"San Antonio",lat:29.4241,lng:-98.4936},{name:"San Diego",lat:32.7157,lng:-117.1611},{name:"Dallas",lat:32.7767,lng:-96.7970},
+  {name:"San Jose",lat:37.3382,lng:-121.8863},{name:"Austin",lat:30.2672,lng:-97.7431},{name:"Jacksonville",lat:30.3322,lng:-81.6557},
+  {name:"Fort Worth",lat:32.7555,lng:-97.3308},{name:"Columbus",lat:39.9612,lng:-82.9988},{name:"Charlotte",lat:35.2271,lng:-80.8431},
+  {name:"San Francisco",lat:37.7749,lng:-122.4194},{name:"Indianapolis",lat:39.7684,lng:-86.1581},{name:"Seattle",lat:47.6062,lng:-122.3321},
+  {name:"Denver",lat:39.7392,lng:-104.9903},{name:"Washington",lat:38.9072,lng:-77.0369},{name:"Boston",lat:42.3601,lng:-71.0589},
+  {name:"Nashville",lat:36.1627,lng:-86.7816},{name:"Detroit",lat:42.3314,lng:-83.0458},{name:"Portland",lat:45.5152,lng:-122.6784},
+  {name:"Las Vegas",lat:36.1699,lng:-115.1398},{name:"Baltimore",lat:39.2904,lng:-76.6122},{name:"Milwaukee",lat:43.0389,lng:-87.9065},
+  {name:"Sacramento",lat:38.5816,lng:-121.4944},{name:"Atlanta",lat:33.7490,lng:-84.3880},{name:"Kansas City",lat:39.0997,lng:-94.5786},
+  {name:"Miami",lat:25.7617,lng:-80.1918},{name:"Raleigh",lat:35.7796,lng:-78.6382},{name:"Minneapolis",lat:44.9778,lng:-93.2650},
+  {name:"New Orleans",lat:29.9511,lng:-90.0715},{name:"Cleveland",lat:41.4993,lng:-81.6944},{name:"Tampa",lat:27.9506,lng:-82.4572},
+  {name:"Orlando",lat:28.5383,lng:-81.3792},{name:"Pittsburgh",lat:40.4406,lng:-79.9959},{name:"Cincinnati",lat:39.1031,lng:-84.5120},
+  {name:"St. Louis",lat:38.6270,lng:-90.1994},{name:"Salt Lake City",lat:40.7608,lng:-111.8910},{name:"Honolulu",lat:21.3069,lng:-157.8583},
+  {name:"Richmond",lat:37.5407,lng:-77.4360},{name:"Buffalo",lat:42.8864,lng:-78.8784},
+  // Global majors
+  {name:"Toronto",lat:43.6532,lng:-79.3832},{name:"Vancouver",lat:49.2827,lng:-123.1207},{name:"Montreal",lat:45.5017,lng:-73.5673},
+  {name:"London",lat:51.5074,lng:-0.1278},{name:"Paris",lat:48.8566,lng:2.3522},{name:"Berlin",lat:52.52,lng:13.405},{name:"Rome",lat:41.9028,lng:12.4964},
+  {name:"Madrid",lat:40.4168,lng:-3.7038},{name:"Barcelona",lat:41.3874,lng:2.1686},{name:"Amsterdam",lat:52.3676,lng:4.9041},
+  {name:"Tokyo",lat:35.6762,lng:139.6503},{name:"Seoul",lat:37.5665,lng:126.9780},{name:"Singapore",lat:1.3521,lng:103.8198},
+  {name:"Hong Kong",lat:22.3193,lng:114.1694},{name:"Sydney",lat:-33.8688,lng:151.2093},{name:"Melbourne",lat:-37.8136,lng:144.9631},
+  {name:"Mexico City",lat:19.4326,lng:-99.1332},{name:"Sao Paulo",lat:-23.5558,lng:-46.6396},{name:"Buenos Aires",lat:-34.6037,lng:-58.3816}
+];
+
+// Autocomplete list (full city list)
+const dl = document.getElementById("citylist");
+if (dl){
+  CITIES.forEach(c=>{ const o=document.createElement("option"); o.value=c.name; dl.appendChild(o); });
+}
+
+// aliases to reduce "unknown city"
+const ALIASES = {
+  "dc":"Washington","d.c.":"Washington","washington dc":"Washington",
+  "sf":"San Francisco","san fran":"San Francisco","san fran.":"San Francisco",
+  "nyc":"New York","new york city":"New York",
+  "la":"Los Angeles","l.a.":"Los Angeles"
+};
+
+// ----- City packs (answer set) -----
+// Each pack includes 4 city-related cards + 4 city-related "front page" stories.
+// Images are direct upload.wikimedia.org paths (high reliability).
+const CITY_PACKS = [
+    {
+    city:"Boston",
+    lat:42.3601,lng:-71.0589,
+    cards:[
+      {emoji:"⚾️", img:wikimediaUpload("thumb/0/02/Fenway_Park_2018.jpg/800px-Fenway_Park_2018.jpg"),
+       clue:"A sold‑out crowd poured into a historic ballpark for a night game."},
+      {emoji:"🎓", img:wikimediaUpload("thumb/9/99/Harvard_University_Widener_Library.jpg/800px-Harvard_University_Widener_Library.jpg"),
+       clue:"A legendary campus library stayed busy long after sunset."},
+      {emoji:"🦞", img:wikimediaUpload("thumb/1/14/Lobster_roll.jpg/800px-Lobster_roll.jpg"),
+       clue:"A seafood sandwich line wrapped around the corner at lunch."},
+      {emoji:"🚇", img:wikimediaUpload("thumb/9/9c/Boston_MBTA_Red_Line_train.jpg/800px-Boston_MBTA_Red_Line_train.jpg"),
+       clue:"A train delay turned platforms into a slow‑moving crowd."}
+    ],
+    stories:[
+      {headline:"A classic ballpark night draws a packed crowd",
+       source:"Wikipedia (Fenway Park)", url:"https://en.wikipedia.org/wiki/Fenway_Park",
+       img:wikimediaUpload("thumb/0/02/Fenway_Park_2018.jpg/900px-Fenway_Park_2018.jpg")},
+      {headline:"A storied campus library stays buzzing after dark",
+       source:"Wikipedia (Harvard University)", url:"https://en.wikipedia.org/wiki/Harvard_University",
+       img:wikimediaUpload("thumb/9/99/Harvard_University_Widener_Library.jpg/900px-Harvard_University_Widener_Library.jpg")},
+      {headline:"A local seafood staple keeps winning lunch",
+       source:"Wikipedia (Lobster roll)", url:"https://en.wikipedia.org/wiki/Lobster_roll",
+       img:wikimediaUpload("thumb/1/14/Lobster_roll.jpg/900px-Lobster_roll.jpg")},
+      {headline:"Transit delays ripple across the busiest lines",
+       source:"Wikipedia (MBTA)", url:"https://en.wikipedia.org/wiki/Massachusetts_Bay_Transportation_Authority",
+       img:wikimediaUpload("thumb/9/9c/Boston_MBTA_Red_Line_train.jpg/900px-Boston_MBTA_Red_Line_train.jpg")}
+    ]
+  },,
+    {
+    city:"New York",
+    lat:40.7128,lng:-74.006,
+    cards:[
+      {emoji:"🗽", img:wikimediaUpload("thumb/a/a1/Statue_of_Liberty_7.jpg/800px-Statue_of_Liberty_7.jpg"),
+       clue:"A harbor landmark stood watch as ferries cut across the water."},
+      {emoji:"🎭", img:wikimediaUpload("thumb/1/1a/Times_Square%2C_New_York_City_%28HDR%29.jpg/800px-Times_Square%2C_New_York_City_%28HDR%29.jpg"),
+       clue:"Screens and lights turned midnight into daytime on a famous plaza."},
+      {emoji:"🚇", img:wikimediaUpload("thumb/0/0c/NYC_Subway_R160A.jpg/800px-NYC_Subway_R160A.jpg"),
+       clue:"A packed train stalled between stations; announcements echoed in the dark."},
+      {emoji:"🌉", img:wikimediaUpload("thumb/6/60/Brooklyn_Bridge_Postdlf.jpg/800px-Brooklyn_Bridge_Postdlf.jpg"),
+       clue:"A sunrise walk crossed a landmark bridge with skyline views."}
+    ],
+    stories:[
+      {headline:"Harbor views frame the city’s most iconic monument",
+       source:"Wikipedia (Statue of Liberty)", url:"https://en.wikipedia.org/wiki/Statue_of_Liberty",
+       img:wikimediaUpload("thumb/a/a1/Statue_of_Liberty_7.jpg/900px-Statue_of_Liberty_7.jpg")},
+      {headline:"A neon crossroads stays awake (again)",
+       source:"Wikipedia (Times Square)", url:"https://en.wikipedia.org/wiki/Times_Square",
+       img:wikimediaUpload("thumb/1/1a/Times_Square%2C_New_York_City_%28HDR%29.jpg/900px-Times_Square%2C_New_York_City_%28HDR%29.jpg")},
+      {headline:"Service changes echo through the underground",
+       source:"Wikipedia (New York City Subway)", url:"https://en.wikipedia.org/wiki/New_York_City_Subway",
+       img:wikimediaUpload("thumb/0/0c/NYC_Subway_R160A.jpg/900px-NYC_Subway_R160A.jpg")},
+      {headline:"A bridge walk becomes the city’s favorite postcard",
+       source:"Wikipedia (Brooklyn Bridge)", url:"https://en.wikipedia.org/wiki/Brooklyn_Bridge",
+       img:wikimediaUpload("thumb/6/60/Brooklyn_Bridge_Postdlf.jpg/900px-Brooklyn_Bridge_Postdlf.jpg")}
+    ]
+  },,
+    {
+    city:"Chicago",
+    lat:41.8781,lng:-87.6298,
+    cards:[
+      {emoji:"🫘", img:wikimediaUpload("thumb/7/7e/Cloud_Gate_%28The_Bean%29_from_east%27.jpg/800px-Cloud_Gate_%28The_Bean%29_from_east%27.jpg"),
+       clue:"A mirrored sculpture reflected a crowd in a downtown park."},
+      {emoji:"🌊", img:wikimediaUpload("thumb/5/5b/Chicago_Lakefront_Trail.jpg/800px-Chicago_Lakefront_Trail.jpg"),
+       clue:"A windy lakeside trail filled with runners and bikes."},
+      {emoji:"🎷", img:wikimediaUpload("thumb/6/6c/Chicago_jazz_club.jpg/800px-Chicago_jazz_club.jpg"),
+       clue:"Late‑night music spilled out as a small club emptied."},
+      {emoji:"🚆", img:wikimediaUpload("thumb/8/87/Chicago_L_train.jpg/800px-Chicago_L_train.jpg"),
+       clue:"An elevated train rattled above the street grid."}
+    ],
+    stories:[
+      {headline:"A shiny landmark becomes the city’s selfie magnet",
+       source:"Wikipedia (Cloud Gate)", url:"https://en.wikipedia.org/wiki/Cloud_Gate",
+       img:wikimediaUpload("thumb/7/7e/Cloud_Gate_%28The_Bean%29_from_east%27.jpg/900px-Cloud_Gate_%28The_Bean%29_from_east%27.jpg")},
+      {headline:"Lakefront mornings deliver the famous breeze",
+       source:"Wikipedia (Lakefront Trail)", url:"https://en.wikipedia.org/wiki/Lakefront_Trail",
+       img:wikimediaUpload("thumb/5/5b/Chicago_Lakefront_Trail.jpg/900px-Chicago_Lakefront_Trail.jpg")},
+      {headline:"A jazz tradition keeps the night moving",
+       source:"Wikipedia (Jazz)", url:"https://en.wikipedia.org/wiki/Jazz",
+       img:wikimediaUpload("thumb/6/6c/Chicago_jazz_club.jpg/900px-Chicago_jazz_club.jpg")},
+      {headline:"The elevated lines stitch neighborhoods together",
+       source:"Wikipedia (Chicago 'L')", url:"https://en.wikipedia.org/wiki/Chicago_%22L%22",
+       img:wikimediaUpload("thumb/8/87/Chicago_L_train.jpg/900px-Chicago_L_train.jpg")}
+    ]
+  },,
+    {
+    city:"San Francisco",
+    lat:37.7749,lng:-122.4194,
+    cards:[
+      {emoji:"🌉", img:wikimediaUpload("thumb/0/0c/GoldenGateBridge-001.jpg/800px-GoldenGateBridge-001.jpg"),
+       clue:"Fog rolled under a giant orange bridge while ships sounded their horns."},
+      {emoji:"🚋", img:wikimediaUpload("thumb/4/4d/San_Francisco_cable_car.jpg/800px-San_Francisco_cable_car.jpg"),
+       clue:"A bell clanged as a car climbed a steep street."},
+      {emoji:"🏝️", img:wikimediaUpload("thumb/a/af/Alcatraz_Island_as_seen_from_the_East.jpg/800px-Alcatraz_Island_as_seen_from_the_East.jpg"),
+       clue:"A rocky island sat offshore with stories heavier than the mist."},
+      {emoji:"🏠", img:wikimediaUpload("thumb/3/34/Painted_Ladies_SF.jpg/800px-Painted_Ladies_SF.jpg"),
+       clue:"Colorful Victorian homes faced a city park, perfectly postcard-ready."}
+    ],
+    stories:[
+      {headline:"A bridge disappears into fog (and reappears)",
+       source:"Wikipedia (Golden Gate Bridge)", url:"https://en.wikipedia.org/wiki/Golden_Gate_Bridge",
+       img:wikimediaUpload("thumb/0/0c/GoldenGateBridge-001.jpg/900px-GoldenGateBridge-001.jpg")},
+      {headline:"Cable cars keep climbing—one bell at a time",
+       source:"Wikipedia (Cable car)", url:"https://en.wikipedia.org/wiki/San_Francisco_cable_car_system",
+       img:wikimediaUpload("thumb/4/4d/San_Francisco_cable_car.jpg/900px-San_Francisco_cable_car.jpg")},
+      {headline:"An island prison story remains a tourist magnet",
+       source:"Wikipedia (Alcatraz Island)", url:"https://en.wikipedia.org/wiki/Alcatraz_Island",
+       img:wikimediaUpload("thumb/a/af/Alcatraz_Island_as_seen_from_the_East.jpg/900px-Alcatraz_Island_as_seen_from_the_East.jpg")},
+      {headline:"Painted houses stay camera-ready",
+       source:"Wikipedia (Painted ladies)", url:"https://en.wikipedia.org/wiki/Painted_ladies",
+       img:wikimediaUpload("thumb/3/34/Painted_Ladies_SF.jpg/900px-Painted_Ladies_SF.jpg")}
+    ]
+  },,
+    {
+    city:"Seattle",
+    lat:47.6062,lng:-122.3321,
+    cards:[
+      {emoji:"🗼", img:wikimediaUpload("thumb/4/4b/Space_Needle002.jpg/800px-Space_Needle002.jpg"),
+       clue:"A needle-like tower cut through low clouds."},
+      {emoji:"☕️", img:wikimediaUpload("thumb/8/86/Pike_Place_Market_sign.jpg/800px-Pike_Place_Market_sign.jpg"),
+       clue:"A public market buzzed with vendors, flowers, and coffee."},
+      {emoji:"🌧️", img:wikimediaUpload("thumb/7/7c/Rainy_city_street.jpg/800px-Rainy_city_street.jpg"),
+       clue:"A steady drizzle made umbrellas bloom on sidewalks."},
+      {emoji:"⛰️", img:wikimediaUpload("thumb/2/23/Mount_Rainier_from_west.jpg/800px-Mount_Rainier_from_west.jpg"),
+       clue:"A snowcapped peak appeared for a moment between clouds."}
+    ],
+    stories:[
+      {headline:"A skyline icon anchors the city’s postcard view",
+       source:"Wikipedia (Space Needle)", url:"https://en.wikipedia.org/wiki/Space_Needle",
+       img:wikimediaUpload("thumb/4/4b/Space_Needle002.jpg/900px-Space_Needle002.jpg")},
+      {headline:"Market lanes overflow with locals and visitors",
+       source:"Wikipedia (Pike Place Market)", url:"https://en.wikipedia.org/wiki/Pike_Place_Market",
+       img:wikimediaUpload("thumb/8/86/Pike_Place_Market_sign.jpg/900px-Pike_Place_Market_sign.jpg")},
+      {headline:"Rain makes the city feel like itself",
+       source:"Wikipedia (Climate of Seattle)", url:"https://en.wikipedia.org/wiki/Climate_of_Seattle",
+       img:wikimediaUpload("thumb/7/7c/Rainy_city_street.jpg/900px-Rainy_city_street.jpg")},
+      {headline:"The mountain appears—then vanishes behind clouds",
+       source:"Wikipedia (Mount Rainier)", url:"https://en.wikipedia.org/wiki/Mount_Rainier",
+       img:wikimediaUpload("thumb/2/23/Mount_Rainier_from_west.jpg/900px-Mount_Rainier_from_west.jpg")}
+    ]
+  }];
+
+// ----- Build today's puzzle: choose a city pack deterministically & ensure different from yesterday -----
+function ymdOffset(key, deltaDays){
+  const d = new Date(key+"T00:00:00Z");
+  d.setUTCDate(d.getUTCDate()+deltaDays);
+  return d.toISOString().slice(0,10);
+}
+function pickPack(key){
+  const r = makeRand(hashDate(key) ^ 0xBEEFCAFE);
+  return Math.floor(r()*CITY_PACKS.length);
+}
+let packIndex = pickPack(dayKey);
+const yIndex = pickPack(ymdOffset(dayKey,-1));
+if (packIndex === yIndex) packIndex = (packIndex + 1) % CITY_PACKS.length;
+
+const PACK = CITY_PACKS[packIndex];
+const answer = {name:PACK.city, lat:PACK.lat, lng:PACK.lng};
+const chosenCards = PACK.cards;
+const chosenStories = PACK.stories;
+
+// ----- render clue cards -----
+const grid=document.getElementById("grid");
+chosenCards.forEach((c,i)=>{
+  const d=document.createElement("div");
+  d.className="flip";
+  d.innerHTML = `
+    <div class="flipInner">
+      <div class="face front">
+        <img src="${c.img}" onerror="this.src='${FALLBACK}'" alt="clue image ${i+1}" referrerpolicy="no-referrer" crossorigin="anonymous">
+        <div class="veil"></div>
+        <div class="tag">Clue ${i+1}</div>
+      </div>
+      <div class="face back"><p>${c.clue}</p></div>
+    </div>`;
+  d.onclick=()=>d.dataset.flipped=d.dataset.flipped==="true"?"false":"true";
+  grid.appendChild(d);
+});
+
+// ----- gameplay -----
+function toRad(d){return d*Math.PI/180;}
+function miles(a,b,c,d){
+  const R=3958.8;
+  const dLat=toRad(c-a), dLon=toRad(d-b);
+  const q=Math.sin(dLat/2)**2 + Math.cos(toRad(a))*Math.cos(toRad(c))*Math.sin(dLon/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q)));
+}
+
+let guesses=[]; const MAX=5;
+const count=document.getElementById("count");
+const feedback=document.getElementById("feedback");
+const error=document.getElementById("error");
+function updateCount(){count.textContent=guesses.length+"/"+MAX+" guesses";}
+
+function normalizeGuess(raw){
+  let s=(raw||"").trim().toLowerCase();
+  s=s.replace(/\./g,"");
+  if(ALIASES[s]) return ALIASES[s].toLowerCase();
+  return s;
+}
+
+function findCity(q){
+  const s=normalizeGuess(q);
+  if(!s) return null;
+  return CITIES.find(c=>c.name.toLowerCase()===s) || CITIES.find(c=>c.name.toLowerCase().startsWith(s)) || null;
+}
+
+document.getElementById("submitBtn").onclick=submitGuess;
+document.getElementById("guessInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") submitGuess(); });
+document.getElementById("revealBtn").onclick=()=>finish(false);
+
+function submitGuess(){
+  error.style.display="none";
+  if(guesses.length>=MAX) return;
+
+  const val=document.getElementById("guessInput").value;
+  const found=findCity(val);
+  if(!found){ error.style.display="block"; return; }
+
+  const d=miles(found.lat,found.lng,answer.lat,answer.lng);
+  guesses.push(d);
+  feedback.style.display="block";
+  feedback.textContent = found.name+" is "+d+" miles away.";
+  updateCount();
+
+  if(found.name===answer.name || guesses.length>=MAX) finish(found.name===answer.name);
+  document.getElementById("guessInput").value="";
+}
+
+function heat(m){ if(m===0) return "🟦"; if(m<250) return "🟩"; if(m<900) return "🟨"; if(m<2000) return "🟧"; return "⬛"; }
+
+// ----- stats (compact) -----
+function getStats(){
+  return JSON.parse(localStorage.getItem("y_stats")||'{"played":0,"wins":0,"cur":0,"max":0,"lastWin":""}');
+}
+function saveStats(s){ localStorage.setItem("y_stats",JSON.stringify(s)); }
+
+function finish(win){
+  if(document.getElementById("modal").style.display==="flex") return;
+
+  const s=getStats();
+  const key = "y_done_"+dayKey;
+  const alreadyDone = localStorage.getItem(key)==="1";
+  if(!alreadyDone){
+    s.played++;
+    if(win){
+      s.wins++;
+      const last = s.lastWin ? new Date(s.lastWin) : null;
+      const diff = last ? (new Date(dayKey)-last)/86400000 : 999;
+      s.cur = (diff===1) ? (s.cur+1) : 1;
+      s.max = Math.max(s.max, s.cur);
+      s.lastWin = dayKey;
+    }else{
+      s.cur=0;
+    }
+    saveStats(s);
+    localStorage.setItem(key,"1");
+  }
+
+  const storyEmojis = chosenCards.map(c=>c.emoji).join("");
+  const boxes = guesses.map(heat).join("");
+  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcemtrocentric.github.io/yesterday`;
+
+  document.getElementById("modal").style.display="flex";
+  document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
+  document.getElementById("answerLine").textContent = "Answer: " + answer.name;
+
+  const winPct = s.played ? Math.round((s.wins/s.played)*100) : 0;
+  document.getElementById("miniStats").textContent = `Streak ${s.cur||0} • Max ${s.max||0} • Played ${s.played} • Win ${winPct}%`;
+  document.getElementById("shareBox").textContent = text;
+
+  // render stories (all tied to the city pack)
+  const stories=document.getElementById("stories");
+  stories.innerHTML="";
+  chosenStories.forEach((st)=>{
+    const el=document.createElement("div");
+    el.className="story";
+    el.innerHTML=`
+      <div class="storyImg">
+        <img src="${st.img}" onerror="this.src='${FALLBACK}'" alt="" referrerpolicy="no-referrer" crossorigin="anonymous">
+      </div>
+      <div class="storyBody">
+        <p class="storyTitle"><a href="${st.url}" target="_blank" rel="noopener noreferrer">${st.headline}</a></p>
+        <div class="storyMeta">${st.source}</div>
+      </div>`;
+    stories.appendChild(el);
+  });
+}
+
+// share -> native share sheet or SMS compose
+document.getElementById("shareBtn").onclick=async()=>{
+  const text=document.getElementById("shareBox").textContent;
+  if(navigator.share){ try{ await navigator.share({text}); return; }catch(e){} }
+  window.location.href="sms:?&body="+encodeURIComponent(text);
+};
+
+updateCount();
+</script>
+</body>
+</html>
