@@ -3,16 +3,7 @@
 <head>
 
   <!-- Social preview -->
-  <meta property="og:title" content="Yesterday — Guess the City">
-  <meta property="og:description" content="Four clues. One city. Share your score and challenge friends.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://dcmetrocentric.github.io/yesterday//">
-  <meta property="og:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fdcmetrocentric.github.io%2Fyesterday%2F?w=1200">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Yesterday — Guess the City">
-  <meta name="twitter:description" content="Four clues. One city. Share your score and challenge friends.">
-  <meta name="twitter:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fdcmetrocentric.github.io%2Fyesterday%2F?w=1200">
-
+                  
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>Yesterday — Guess the City</title>
@@ -875,7 +866,7 @@ function finish(win){
 
   const storyEmojis = chosenCards.map(c=>c.emoji).join("");
   const boxes = guesses.map(heat).join("");
-  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcmetrocentric.github.io/yesterday/`;
+  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcmetrocentric.github.io/yesterday//`;
 
   document.getElementById("modal").style.display="flex";
   document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
@@ -902,8 +893,8 @@ function finish(win){
 // share -> native share sheet or SMS compose
 document.getElementById("shareBtn").onclick=async()=>{
   const text=document.getElementById("shareBox").textContent;
-  if(navigator.share){ try{ await navigator.share({text}); return; }catch(e){} }
-  window.location.href="sms:?&body="+encodeURIComponent(text);
+  if(navigator.share){ try{ await navigator.share({ url: "https://dcmetrocentric.github.io/yesterday//" }); return; }catch(e){} }
+  window.location.href="sms:?&body=https://dcmetrocentric.github.io/yesterday//"+encodeURIComponent(text);
 };
 
 updateCount();
