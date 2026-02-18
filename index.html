@@ -6,7 +6,7 @@
   <meta property="og:title" content="Yesterday — Guess the City">
   <meta property="og:description" content="Four clues. One city.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://dcmetrocentric.github.io/yesterday/">
+  <meta property="og:url" content="">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Yesterday — Guess the City">
   <meta name="twitter:description" content="Four clues. One city.">
@@ -223,6 +223,38 @@ html, body { overflow-x: hidden; }
   letter-spacing: 0.6px;
 }
 
+
+/* Edition date styling */
+.editionLine{
+  margin-top:6px;
+  font-size:13px;
+  opacity:0.8;
+}
+/* Reveal as small text link */
+.revealLink{
+  background:none !important;
+  border:none !important;
+  color:#2b6cb0 !important;
+  text-decoration:underline;
+  font-size:12px !important;
+  padding:0 !important;
+  margin-left:10px;
+}
+
+
+#confettiCanvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;}
+
+/* Masthead adjustments */
+.topbar{align-items:flex-start;}
+.brand{font-size:36px; font-weight:800; letter-spacing:3px; line-height:1;}
+.tagline{margin-top:6px; font-size:14px; opacity:0.9;}
+.rightMeta{align-items:flex-end;}
+.editionLine{font-size:12px; opacity:0.8; margin-bottom:6px; text-align:right;}
+@media (max-width:520px){
+  .brand{font-size:30px;}
+  .topbar{gap:10px;}
+}
+
 </style>
 </head>
 <body>
@@ -231,9 +263,11 @@ html, body { overflow-x: hidden; }
   <div class="topbar">
     <div class="brandWrap">
       <div class="brand">YESTERDAY</div>
-      <div class="sub">What city was this?</div>
-    </div>
+      <div class="tagline">Guess the city behind yesterdays biggest headlines</div>
+      <div class="sub">You get 5 guesses. Flip over each card for a clue.</div>
+</div>
     <div class="rightMeta">
+      <div id="editionLine" class="editionLine"></div>
       <div class="metaLine" id="puzzleId"></div>
       <div class="timer" id="timer"></div>
     </div>
@@ -249,8 +283,8 @@ html, body { overflow-x: hidden; }
           <input id="guessInput" placeholder="Type a city" autocomplete="off" list="citylist">
           <datalist id="citylist"></datalist>
         </div>
-        <button id="submitBtn">Submit</button>
-        <button class="ghost" id="revealBtn">Reveal</button>
+        <button id="submitBtn">Guess</button>
+        <button class="revealLink" class="ghost" id="revealBtn">Give up / Reveal Answer</button>
       </div>
       <div class="count" id="count">0/5 guesses</div>
       <div class="error" id="error">Unknown city. Try a major city (e.g., Boston, Los Angeles).</div>
@@ -294,9 +328,17 @@ html, body { overflow-x: hidden; }
         : "";
       const gridLine = (typeof guessGrid !== "undefined") ? guessGrid : "";
       const solvedLine = (typeof solved !== "undefined" && solved)
-        ? `Solved ${guesses}/5`
+        ? `I got Yesterday in ${guesses}/5`
         : `Revealed ${guesses}/5`;
       return `YESTERDAY  ${dayLabel}
+  function buildShareDisplayText(){
+    const t = buildShareText();
+    const lines = t.split('\n');
+    const last = (lines[lines.length-1]||'').trim();
+    if(last.startsWith('http')) lines.pop();
+    return lines.join('\n');
+  }
+
 ${emojisLine}
 ${gridLine}
 ${solvedLine}`;
@@ -306,7 +348,7 @@ catch(e) {
 ${emojisLine}
 ${gridLine}
 ${solvedLine}
-<https://dcmetrocentric.github.io/yesterday/>`;
+<>`;
     }
   }
 
@@ -912,7 +954,7 @@ function finish(win){
 
   const storyEmojis = chosenCards.map(c=>c.emoji).join("");
   const boxes = guesses.map(heat).join("");
-  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\nhttps://dcmetrocentric.github.io/yesterday/`;
+  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\n`;
 
   document.getElementById("modal").style.display="flex";
   document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
@@ -945,5 +987,94 @@ document.getElementById("shareBtn").onclick=async()=>{
 
 updateCount();
 </script>
+
+<script>
+(function(){
+  function formatEdition(d){
+    const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+    return days[d.getDay()]+" Edition • "+months[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
+  }
+  function setEdition(){
+    let d;
+    if(typeof dayKey!=="undefined" && /^\d{4}-\d{2}-\d{2}$/.test(dayKey)){
+      const parts=dayKey.split("-").map(Number);
+      d=new Date(parts[0],parts[1]-1,parts[2]);
+    } else {
+      d=new Date();
+    }
+    const el=document.getElementById("editionLine");
+    if(el){ el.textContent=formatEdition(d); }
+  }
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",setEdition);
+  } else setEdition();
+})();
+</script>
+
+
+<canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+<script>
+(function(){
+  const canvas = document.getElementById('confettiCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  function resize(){
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+  function burst(durationMs=1200){
+    const start = performance.now();
+    const pieces = [];
+    const colors = ["#2B6CB0","#A0AEC0","#F6AD55","#48BB78","#ED64A6","#ECC94B"];
+    const count = 140;
+    for(let i=0;i<count;i++){
+      pieces.push({
+        x: rand(window.innerWidth*0.2, window.innerWidth*0.8),
+        y: rand(-60, -10),
+        vx: rand(-2.2,2.2),
+        vy: rand(2.6,6.2),
+        w: rand(6,12),
+        h: rand(6,16),
+        rot: rand(0,Math.PI*2),
+        vr: rand(-0.25,0.25),
+        c: colors[(Math.random()*colors.length)|0],
+        a: 1
+      });
+    }
+    function frame(now){
+      const t = now - start;
+      ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+      for(const p of pieces){
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.045;
+        p.rot += p.vr;
+        if(t > durationMs*0.65) p.a = Math.max(0, 1 - (t - durationMs*0.65)/(durationMs*0.35));
+        ctx.save();
+        ctx.globalAlpha = p.a;
+        ctx.translate(p.x,p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.c;
+        ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        ctx.restore();
+      }
+      if(t < durationMs) requestAnimationFrame(frame);
+      else ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+    }
+    requestAnimationFrame(frame);
+  }
+  window.__confettiBurst = burst;
+})();
+</script>
+
 </body>
 </html>
