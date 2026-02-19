@@ -436,12 +436,51 @@ function previewImage(url){
 
 
 // ----- date + countdown -----
+// Midnight rollover is America/New_York (ET)
+function getNYParts(d=new Date()){
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone:'America/New_York',
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit',
+    hourCycle:'h23'
+  });
+  const parts = Object.fromEntries(fmt.formatToParts(d).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+  return parts;
+}
+function getNYDayKey(d=new Date()){
+  const p=getNYParts(d);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+function getNYOffsetMinutes(d=new Date()){
+  try{
+    const fmt = new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York', timeZoneName:'shortOffset'});
+    const tz = fmt.formatToParts(d).find(p=>p.type==='timeZoneName')?.value || '';
+    const m = tz.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
+    if(!m) return -300;
+    const sign = m[1]==='-' ? -1 : 1;
+    const hh = parseInt(m[2],10);
+    const mm = m[3] ? parseInt(m[3],10) : 0;
+    return sign*(hh*60+mm);
+  }catch(e){ return -300; }
+}
+function nyMidnightUTCms(forDate=new Date()){
+  const p=getNYParts(forDate);
+  const y=parseInt(p.year,10), mo=parseInt(p.month,10)-1, da=parseInt(p.day,10);
+  const offsetMin=getNYOffsetMinutes(forDate);
+  return Date.UTC(y,mo,da,0,0,0) - offsetMin*60000;
+}
+function nextNYMidnightUTCms(){
+  const now=new Date();
+  const todayMid = nyMidnightUTCms(now);
+  return todayMid + 24*60*60*1000;
+}
+
 const now = new Date();
-const dayKey = now.toISOString().slice(0,10);
+const dayKey = getNYDayKey(now);
 document.getElementById('puzzleId').textContent = "Puzzle " + dayKey;
 
 function nextMidnight(){
-  const n=new Date(); n.setHours(24,0,0,0); return n;
+  return new Date(nextNYMidnightUTCms());
 }
 function tick(){
   const diff = nextMidnight() - new Date();
@@ -450,6 +489,7 @@ function tick(){
 }
 setInterval(tick,1000); tick();
 
+// stable hash -> int
 // stable hash -> int
 function hashDate(key){
   let h=5381;
@@ -513,323 +553,495 @@ const ALIASES = {
 // Images are direct upload.wikimedia.org paths (high reliability).
 const CITY_PACKS = [
   {
+    city:"Austin",
+    lat:30.2672,lng:-97.7431,
+    cards:[
+      {emoji:"🎸", clue:"Yesterday, a headline about live music festival or venue update had people talking."},
+      {emoji:"🏛️", clue:"Yesterday, a headline about state legislature vote or policy move had people talking."},
+      {emoji:"🌮", clue:"Yesterday, a headline about restaurant opening or food scene buzz had people talking."},
+      {emoji:"🏎️", clue:"Yesterday, a headline about COTA or motorsport event update had people talking."}
+    ],
+    stories:[
+      {headline:"Live Music Festival Or Venue Update", source:"Google News", url:"https://news.google.com/search?q=Austin%20live%20music%20festival%20or%20venue%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"State Legislature Vote Or Policy Move", source:"Google News", url:"https://news.google.com/search?q=Austin%20state%20legislature%20vote%20or%20policy%20move%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Restaurant Opening Or Food Scene Buzz", source:"Google News", url:"https://news.google.com/search?q=Austin%20restaurant%20opening%20or%20food%20scene%20buzz%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Cota Or Motorsport Event Update", source:"Google News", url:"https://news.google.com/search?q=Austin%20COTA%20or%20motorsport%20event%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+  {
     city:"Boston",
     lat:42.3601,lng:-71.0589,
     cards:[
-      {emoji:"⚾️", clue:"Yesterday, a historic ballpark buzzed as fans packed in for a night game."},
-      {emoji:"🚇", clue:"Yesterday, transit alerts turned a routine commute into a wait‑and‑watch morning."},
-      {emoji:"🎓", clue:"Yesterday, campus news drew attention across the academic corridor."},
-      {emoji:"🧁", clue:"Yesterday, a sweet staple had a fresh twist and a line out the door."}
+      {emoji:"⚾️", clue:"Yesterday, a headline about Red Sox or Fenway Park headline had people talking."},
+      {emoji:"🎓", clue:"Yesterday, a headline about university campus news Harvard MIT had people talking."},
+      {emoji:"🚇", clue:"Yesterday, a headline about MBTA service disruption or upgrade had people talking."},
+      {emoji:"🌧️", clue:"Yesterday, a headline about winter storm or flood advisory had people talking."}
     ],
     stories:[
-      {headline:"a historic ballpark buzzed as fans packed in for a night game.", source:"Google News", url:"https://news.google.com/search?q=Fenway%20Park%20crowd%20night%20game%20Boston%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"transit alerts turned a routine commute into a wait‑and‑watch morning.", source:"Google News", url:"https://news.google.com/search?q=MBTA%20delays%20commuter%20alerts%20Boston%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"campus news drew attention across the academic corridor.", source:"Google News", url:"https://news.google.com/search?q=Harvard%20Cambridge%20campus%20news%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a sweet staple had a fresh twist and a line out the door.", source:"Google News", url:"https://news.google.com/search?q=Boston%20bakery%20new%20opening%20trend%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Red Sox Or Fenway Park Headline", source:"Google News", url:"https://news.google.com/search?q=Boston%20Red%20Sox%20or%20Fenway%20Park%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"University Campus News Harvard Mit", source:"Google News", url:"https://news.google.com/search?q=Boston%20university%20campus%20news%20Harvard%20MIT%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Mbta Service Disruption Or Upgrade", source:"Google News", url:"https://news.google.com/search?q=Boston%20MBTA%20service%20disruption%20or%20upgrade%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Winter Storm Or Flood Advisory", source:"Google News", url:"https://news.google.com/search?q=Boston%20winter%20storm%20or%20flood%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
   {
-    city:"New York",
+    city:"New York City",
     lat:40.7128,lng:-74.006,
     cards:[
-      {emoji:"🚇", clue:"Yesterday, riders tracked service changes as trains slowed between stops."},
-      {emoji:"🧑‍⚖️", clue:"Yesterday, a courthouse calendar kept the city’s news cycle moving."},
-      {emoji:"🎭", clue:"Yesterday, a marquee performance pulled crowds into the theater district."},
-      {emoji:"🗽", clue:"Yesterday, waterfront updates reshaped visitor plans."}
+      {emoji:"🗽", clue:"Yesterday, a headline about mayor or city hall announcement had people talking."},
+      {emoji:"🚇", clue:"Yesterday, a headline about subway delay or service change had people talking."},
+      {emoji:"⚖️", clue:"Yesterday, a headline about court ruling or major trial update had people talking."},
+      {emoji:"🎭", clue:"Yesterday, a headline about Broadway opening or theater headline had people talking."}
     ],
     stories:[
-      {headline:"riders tracked service changes as trains slowed between stops.", source:"Google News", url:"https://news.google.com/search?q=NYC%20subway%20delays%20service%20change%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a courthouse calendar kept the city’s news cycle moving.", source:"Google News", url:"https://news.google.com/search?q=Manhattan%20court%20ruling%20latest%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a marquee performance pulled crowds into the theater district.", source:"Google News", url:"https://news.google.com/search?q=Broadway%20show%20opening%20audience%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"waterfront updates reshaped visitor plans.", source:"Google News", url:"https://news.google.com/search?q=NYC%20waterfront%20advisory%20ferry%20update%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Mayor Or City Hall Announcement", source:"Google News", url:"https://news.google.com/search?q=New%20York%20City%20mayor%20or%20city%20hall%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Subway Delay Or Service Change", source:"Google News", url:"https://news.google.com/search?q=New%20York%20City%20subway%20delay%20or%20service%20change%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Court Ruling Or Major Trial Update", source:"Google News", url:"https://news.google.com/search?q=New%20York%20City%20court%20ruling%20or%20major%20trial%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Broadway Opening Or Theater Headline", source:"Google News", url:"https://news.google.com/search?q=New%20York%20City%20Broadway%20opening%20or%20theater%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
   {
     city:"Washington, DC",
     lat:38.9072,lng:-77.0369,
     cards:[
-      {emoji:"🏛️", clue:"Yesterday, negotiations and votes stretched late into the day downtown."},
-      {emoji:"🛫", clue:"Yesterday, airport boards flashed updates as schedules shifted."},
-      {emoji:"🖼️", clue:"Yesterday, a major exhibit drew crowds to a familiar museum row."},
-      {emoji:"🚲", clue:"Yesterday, a new mobility change stirred debate on the street."}
+      {emoji:"🏛️", clue:"Yesterday, a headline about Congress vote or hearing headline had people talking."},
+      {emoji:"🕵️", clue:"Yesterday, a headline about federal agency or policy announcement had people talking."},
+      {emoji:"🚇", clue:"Yesterday, a headline about Metro service advisory had people talking."},
+      {emoji:"🎟️", clue:"Yesterday, a headline about museum exhibit or major event had people talking."}
     ],
     stories:[
-      {headline:"negotiations and votes stretched late into the day downtown.", source:"Google News", url:"https://news.google.com/search?q=Capitol%20Hill%20vote%20negotiations%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"airport boards flashed updates as schedules shifted.", source:"Google News", url:"https://news.google.com/search?q=DCA%20airport%20delays%20cancellations%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a major exhibit drew crowds to a familiar museum row.", source:"Google News", url:"https://news.google.com/search?q=Smithsonian%20exhibit%20opening%20crowd%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a new mobility change stirred debate on the street.", source:"Google News", url:"https://news.google.com/search?q=DC%20bike%20lane%20change%20debate%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Congress Vote Or Hearing Headline", source:"Google News", url:"https://news.google.com/search?q=Washington%2C%20DC%20Congress%20vote%20or%20hearing%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Federal Agency Or Policy Announcement", source:"Google News", url:"https://news.google.com/search?q=Washington%2C%20DC%20federal%20agency%20or%20policy%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Metro Service Advisory", source:"Google News", url:"https://news.google.com/search?q=Washington%2C%20DC%20Metro%20service%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Museum Exhibit Or Major Event", source:"Google News", url:"https://news.google.com/search?q=Washington%2C%20DC%20museum%20exhibit%20or%20major%20event%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
-  {
-    city:"Chicago",
-    lat:41.8781,lng:-87.6298,
-    cards:[
-      {emoji:"🫘", clue:"Yesterday, a reflective landmark mirrored a midday crowd in the park."},
-      {emoji:"🚆", clue:"Yesterday, commute plans changed fast after service notices went up."},
-      {emoji:"🌬️", clue:"Yesterday, wind advisories put the lakefront in the headlines."},
-      {emoji:"🍕", clue:"Yesterday, a neighborhood food story had locals talking."}
-    ],
-    stories:[
-      {headline:"a reflective landmark mirrored a midday crowd in the park.", source:"Google News", url:"https://news.google.com/search?q=Cloud%20Gate%20crowd%20Millennium%20Park%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"commute plans changed fast after service notices went up.", source:"Google News", url:"https://news.google.com/search?q=CTA%20service%20disruption%20update%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"wind advisories put the lakefront in the headlines.", source:"Google News", url:"https://news.google.com/search?q=Chicago%20lakefront%20wind%20advisory%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a neighborhood food story had locals talking.", source:"Google News", url:"https://news.google.com/search?q=Chicago%20pizza%20spot%20opening%20buzz%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-  {
-    city:"San Francisco",
-    lat:37.7749,lng:-122.4194,
-    cards:[
-      {emoji:"🌉", clue:"Yesterday, fog and traffic warnings dominated the iconic crossing."},
-      {emoji:"🚋", clue:"Yesterday, riders checked updates as streetcars and buses shifted service."},
-      {emoji:"💻", clue:"Yesterday, a tech headline put the city back in focus."},
-      {emoji:"🧑‍🍳", clue:"Yesterday, a restaurant story sparked a line and a debate."}
-    ],
-    stories:[
-      {headline:"fog and traffic warnings dominated the iconic crossing.", source:"Google News", url:"https://news.google.com/search?q=Golden%20Gate%20fog%20traffic%20advisory%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"riders checked updates as streetcars and buses shifted service.", source:"Google News", url:"https://news.google.com/search?q=Muni%20service%20advisory%20today%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a tech headline put the city back in focus.", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20startup%20funding%20round%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a restaurant story sparked a line and a debate.", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20restaurant%20opening%20controversy%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-  {
-    city:"Los Angeles",
-    lat:34.0522,lng:-118.2437,
-    cards:[
-      {emoji:"🎬", clue:"Yesterday, a film or awards headline put Hollywood back on the radar."},
-      {emoji:"🚗", clue:"Yesterday, a freeway incident rippled into hours of delays."},
-      {emoji:"🏖️", clue:"Yesterday, beach advisories changed weekend plans."},
-      {emoji:"🏀", clue:"Yesterday, game night crowds filled streets near the arena."}
-    ],
-    stories:[
-      {headline:"a film or awards headline put Hollywood back on the radar.", source:"Google News", url:"https://news.google.com/search?q=Hollywood%20awards%20news%20Los%20Angeles%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a freeway incident rippled into hours of delays.", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20freeway%20crash%20delays%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"beach advisories changed weekend plans.", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20beach%20water%20advisory%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"game night crowds filled streets near the arena.", source:"Google News", url:"https://news.google.com/search?q=LA%20arena%20game%20crowd%20downtown%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-  {
-    city:"Seattle",
-    lat:47.6062,lng:-122.3321,
-    cards:[
-      {emoji:"☕️", clue:"Yesterday, a coffee story brewed up a citywide conversation."},
-      {emoji:"🌧️", clue:"Yesterday, rain and advisories slowed the commute."},
-      {emoji:"🛳️", clue:"Yesterday, riders watched ferry updates as routes shifted."},
-      {emoji:"🎸", clue:"Yesterday, a live‑music night spilled into the streets."}
-    ],
-    stories:[
-      {headline:"a coffee story brewed up a citywide conversation.", source:"Google News", url:"https://news.google.com/search?q=Seattle%20coffee%20prices%20new%20cafe%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"rain and advisories slowed the commute.", source:"Google News", url:"https://news.google.com/search?q=Seattle%20rain%20advisory%20commute%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"riders watched ferry updates as routes shifted.", source:"Google News", url:"https://news.google.com/search?q=Washington%20State%20Ferries%20delay%20update%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a live‑music night spilled into the streets.", source:"Google News", url:"https://news.google.com/search?q=Seattle%20concert%20crowd%20neighborhood%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
+
   {
     city:"Miami",
     lat:25.7617,lng:-80.1918,
     cards:[
-      {emoji:"🏖️", clue:"Yesterday, beach crowds returned as conditions improved."},
-      {emoji:"🌴", clue:"Yesterday, heat or storm advisories reshaped plans."},
-      {emoji:"🎨", clue:"Yesterday, new murals and art buzzed through a warehouse district."},
-      {emoji:"⚽️", clue:"Yesterday, a sports headline lit up the city’s feed."}
+      {emoji:"🌴", clue:"Yesterday, a headline about beach advisory or tourism headline had people talking."},
+      {emoji:"🏀", clue:"Yesterday, a headline about Heat game or trade rumor had people talking."},
+      {emoji:"🛥️", clue:"Yesterday, a headline about port or cruise terminal update had people talking."},
+      {emoji:"🌧️", clue:"Yesterday, a headline about flood watch or severe weather had people talking."}
     ],
     stories:[
-      {headline:"beach crowds returned as conditions improved.", source:"Google News", url:"https://news.google.com/search?q=Miami%20Beach%20conditions%20crowds%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"heat or storm advisories reshaped plans.", source:"Google News", url:"https://news.google.com/search?q=Miami%20weather%20advisory%20heat%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"new murals and art buzzed through a warehouse district.", source:"Google News", url:"https://news.google.com/search?q=Wynwood%20mural%20unveiling%20Miami%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a sports headline lit up the city’s feed.", source:"Google News", url:"https://news.google.com/search?q=Miami%20soccer%20match%20crowd%20news%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Beach Advisory Or Tourism Headline", source:"Google News", url:"https://news.google.com/search?q=Miami%20beach%20advisory%20or%20tourism%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Heat Game Or Trade Rumor", source:"Google News", url:"https://news.google.com/search?q=Miami%20Heat%20game%20or%20trade%20rumor%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Port Or Cruise Terminal Update", source:"Google News", url:"https://news.google.com/search?q=Miami%20port%20or%20cruise%20terminal%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Flood Watch Or Severe Weather", source:"Google News", url:"https://news.google.com/search?q=Miami%20flood%20watch%20or%20severe%20weather%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
   {
-    city:"Dallas",
-    lat:32.7767,lng:-96.797,
+    city:"Chicago",
+    lat:41.8781,lng:-87.6298,
     cards:[
-      {emoji:"✈️", clue:"Yesterday, airport delays stacked up through the afternoon."},
-      {emoji:"🚓", clue:"Yesterday, downtown closures rerouted drivers for hours."},
-      {emoji:"🏈", clue:"Yesterday, stadium‑district buzz built ahead of a big event."},
-      {emoji:"🌪️", clue:"Yesterday, severe weather alerts kept eyes on the radar."}
+      {emoji:"🌬️", clue:"Yesterday, a headline about wind chill or weather alert had people talking."},
+      {emoji:"🚆", clue:"Yesterday, a headline about CTA service update had people talking."},
+      {emoji:"🏀", clue:"Yesterday, a headline about Bulls headline had people talking."},
+      {emoji:"🏙️", clue:"Yesterday, a headline about downtown development or housing plan had people talking."}
     ],
     stories:[
-      {headline:"airport delays stacked up through the afternoon.", source:"Google News", url:"https://news.google.com/search?q=DFW%20airport%20delays%20today%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"downtown closures rerouted drivers for hours.", source:"Google News", url:"https://news.google.com/search?q=Dallas%20road%20closures%20downtown%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"stadium‑district buzz built ahead of a big event.", source:"Google News", url:"https://news.google.com/search?q=Dallas%20stadium%20district%20event%20crowd%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"severe weather alerts kept eyes on the radar.", source:"Google News", url:"https://news.google.com/search?q=Dallas%20severe%20weather%20watch%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Wind Chill Or Weather Alert", source:"Google News", url:"https://news.google.com/search?q=Chicago%20wind%20chill%20or%20weather%20alert%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Cta Service Update", source:"Google News", url:"https://news.google.com/search?q=Chicago%20CTA%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Bulls Headline", source:"Google News", url:"https://news.google.com/search?q=Chicago%20Bulls%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Downtown Development Or Housing Plan", source:"Google News", url:"https://news.google.com/search?q=Chicago%20downtown%20development%20or%20housing%20plan%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
   {
-    city:"Houston",
-    lat:29.7604,lng:-95.3698,
+    city:"Los Angeles",
+    lat:34.0522,lng:-118.2437,
     cards:[
-      {emoji:"⚡️", clue:"Yesterday, storms sparked outage updates across neighborhoods."},
-      {emoji:"🚧", clue:"Yesterday, construction closures squeezed a major commute route."},
-      {emoji:"🏀", clue:"Yesterday, arena crowds packed the downtown blocks."},
-      {emoji:"🚀", clue:"Yesterday, space‑industry news sparked a wave of local pride."}
+      {emoji:"🎬", clue:"Yesterday, a headline about studio or entertainment industry headline had people talking."},
+      {emoji:"🚗", clue:"Yesterday, a headline about freeway closure or traffic change had people talking."},
+      {emoji:"⚾️", clue:"Yesterday, a headline about Dodgers headline had people talking."},
+      {emoji:"🌋", clue:"Yesterday, a headline about earthquake or wildfire update had people talking."}
     ],
     stories:[
-      {headline:"storms sparked outage updates across neighborhoods.", source:"Google News", url:"https://news.google.com/search?q=Houston%20power%20outage%20storms%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"construction closures squeezed a major commute route.", source:"Google News", url:"https://news.google.com/search?q=Houston%20freeway%20closure%20construction%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"arena crowds packed the downtown blocks.", source:"Google News", url:"https://news.google.com/search?q=Houston%20downtown%20arena%20crowd%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"space‑industry news sparked a wave of local pride.", source:"Google News", url:"https://news.google.com/search?q=Houston%20NASA%20announcement%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Studio Or Entertainment Industry Headline", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20studio%20or%20entertainment%20industry%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Freeway Closure Or Traffic Change", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20freeway%20closure%20or%20traffic%20change%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Dodgers Headline", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20Dodgers%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Earthquake Or Wildfire Update", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20earthquake%20or%20wildfire%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
   {
-    city:"Atlanta",
-    lat:33.749,lng:-84.388,
+    city:"San Francisco",
+    lat:37.7749,lng:-122.4194,
     cards:[
-      {emoji:"✈️", clue:"Yesterday, flight boards filled with delays at a major hub."},
-      {emoji:"🚇", clue:"Yesterday, rail riders adapted to service changes."},
-      {emoji:"🎤", clue:"Yesterday, a concert night turned downtown into a crowd."},
-      {emoji:"🍗", clue:"Yesterday, a food story had locals arguing about the best bite."}
+      {emoji:"💻", clue:"Yesterday, a headline about tech company or AI startup headline had people talking."},
+      {emoji:"🚋", clue:"Yesterday, a headline about Muni/BART service disruption had people talking."},
+      {emoji:"🌫️", clue:"Yesterday, a headline about Bay Area weather advisory had people talking."},
+      {emoji:"⚾️", clue:"Yesterday, a headline about Giants headline had people talking."}
     ],
     stories:[
-      {headline:"flight boards filled with delays at a major hub.", source:"Google News", url:"https://news.google.com/search?q=ATL%20airport%20delays%20cancellations%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"rail riders adapted to service changes.", source:"Google News", url:"https://news.google.com/search?q=MARTA%20service%20changes%20today%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a concert night turned downtown into a crowd.", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20concert%20crowd%20downtown%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a food story had locals arguing about the best bite.", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20fried%20chicken%20new%20spot%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Tech Company Or Ai Startup Headline", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20tech%20company%20or%20AI%20startup%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Muni/Bart Service Disruption", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20Muni/BART%20service%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Bay Area Weather Advisory", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20Bay%20Area%20weather%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Giants Headline", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20Giants%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
+  {
+    city:"Seattle",
+    lat:47.6062,lng:-122.3321,
+    cards:[
+      {emoji:"☕️", clue:"Yesterday, a headline about major employer or coffee brand headline had people talking."},
+      {emoji:"🛫", clue:"Yesterday, a headline about Sea-Tac travel disruption had people talking."},
+      {emoji:"🌧️", clue:"Yesterday, a headline about storm warning or flooding had people talking."},
+      {emoji:"⚽️", clue:"Yesterday, a headline about Sounders headline had people talking."}
+    ],
+    stories:[
+      {headline:"Major Employer Or Coffee Brand Headline", source:"Google News", url:"https://news.google.com/search?q=Seattle%20major%20employer%20or%20coffee%20brand%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Sea-Tac Travel Disruption", source:"Google News", url:"https://news.google.com/search?q=Seattle%20Sea-Tac%20travel%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Storm Warning Or Flooding", source:"Google News", url:"https://news.google.com/search?q=Seattle%20storm%20warning%20or%20flooding%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Sounders Headline", source:"Google News", url:"https://news.google.com/search?q=Seattle%20Sounders%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
   {
     city:"Denver",
     lat:39.7392,lng:-104.9903,
     cards:[
-      {emoji:"❄️", clue:"Yesterday, winter weather warnings reshaped the morning commute."},
-      {emoji:"⛷️", clue:"Yesterday, mountain traffic piled up as weekend plans kicked off."},
-      {emoji:"🏀", clue:"Yesterday, a downtown event filled restaurants and sidewalks."},
-      {emoji:"🌲", clue:"Yesterday, trail and park updates shifted outdoor plans."}
+      {emoji:"🏔️", clue:"Yesterday, a headline about snowstorm or mountain travel alert had people talking."},
+      {emoji:"🏀", clue:"Yesterday, a headline about Nuggets headline had people talking."},
+      {emoji:"✈️", clue:"Yesterday, a headline about DEN airport delay or expansion had people talking."},
+      {emoji:"🚴", clue:"Yesterday, a headline about bike lane or transit project had people talking."}
     ],
     stories:[
-      {headline:"winter weather warnings reshaped the morning commute.", source:"Google News", url:"https://news.google.com/search?q=Denver%20snow%20advisory%20commute%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"mountain traffic piled up as weekend plans kicked off.", source:"Google News", url:"https://news.google.com/search?q=I-70%20ski%20traffic%20Denver%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a downtown event filled restaurants and sidewalks.", source:"Google News", url:"https://news.google.com/search?q=Denver%20downtown%20event%20crowd%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"trail and park updates shifted outdoor plans.", source:"Google News", url:"https://news.google.com/search?q=Denver%20trail%20closure%20update%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Snowstorm Or Mountain Travel Alert", source:"Google News", url:"https://news.google.com/search?q=Denver%20snowstorm%20or%20mountain%20travel%20alert%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Nuggets Headline", source:"Google News", url:"https://news.google.com/search?q=Denver%20Nuggets%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Den Airport Delay Or Expansion", source:"Google News", url:"https://news.google.com/search?q=Denver%20DEN%20airport%20delay%20or%20expansion%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Bike Lane Or Transit Project", source:"Google News", url:"https://news.google.com/search?q=Denver%20bike%20lane%20or%20transit%20project%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
+  {
+    city:"Dallas",
+    lat:32.7767,lng:-96.797,
+    cards:[
+      {emoji:"🏈", clue:"Yesterday, a headline about Cowboys headline had people talking."},
+      {emoji:"🏗️", clue:"Yesterday, a headline about major development or skyline project had people talking."},
+      {emoji:"🌪️", clue:"Yesterday, a headline about severe weather watch had people talking."},
+      {emoji:"🎤", clue:"Yesterday, a headline about arena show or concert announcement had people talking."}
+    ],
+    stories:[
+      {headline:"Cowboys Headline", source:"Google News", url:"https://news.google.com/search?q=Dallas%20Cowboys%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Major Development Or Skyline Project", source:"Google News", url:"https://news.google.com/search?q=Dallas%20major%20development%20or%20skyline%20project%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Severe Weather Watch", source:"Google News", url:"https://news.google.com/search?q=Dallas%20severe%20weather%20watch%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Arena Show Or Concert Announcement", source:"Google News", url:"https://news.google.com/search?q=Dallas%20arena%20show%20or%20concert%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+  {
+    city:"Houston",
+    lat:29.7604,lng:-95.3698,
+    cards:[
+      {emoji:"🚀", clue:"Yesterday, a headline about NASA/space headline had people talking."},
+      {emoji:"🌀", clue:"Yesterday, a headline about Gulf weather advisory had people talking."},
+      {emoji:"🏀", clue:"Yesterday, a headline about Rockets headline had people talking."},
+      {emoji:"🛢️", clue:"Yesterday, a headline about energy sector announcement had people talking."}
+    ],
+    stories:[
+      {headline:"Nasa/Space Headline", source:"Google News", url:"https://news.google.com/search?q=Houston%20NASA/space%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Gulf Weather Advisory", source:"Google News", url:"https://news.google.com/search?q=Houston%20Gulf%20weather%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Rockets Headline", source:"Google News", url:"https://news.google.com/search?q=Houston%20Rockets%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Energy Sector Announcement", source:"Google News", url:"https://news.google.com/search?q=Houston%20energy%20sector%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
   {
     city:"Phoenix",
     lat:33.4484,lng:-112.074,
     cards:[
-      {emoji:"🔥", clue:"Yesterday, fire‑weather conditions prompted alerts."},
-      {emoji:"🚧", clue:"Yesterday, a freeway closure rerouted drivers into surface streets."},
-      {emoji:"🏀", clue:"Yesterday, game crowds filled downtown blocks."},
-      {emoji:"🌵", clue:"Yesterday, desert recreation news brought fresh guidance."}
+      {emoji:"☀️", clue:"Yesterday, a headline about heat advisory or drought update had people talking."},
+      {emoji:"🏀", clue:"Yesterday, a headline about Suns headline had people talking."},
+      {emoji:"🌵", clue:"Yesterday, a headline about water policy update had people talking."},
+      {emoji:"✈️", clue:"Yesterday, a headline about airport service update had people talking."}
     ],
     stories:[
-      {headline:"fire‑weather conditions prompted alerts.", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20fire%20weather%20alert%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a freeway closure rerouted drivers into surface streets.", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20freeway%20closure%20detour%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"game crowds filled downtown blocks.", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20game%20crowd%20downtown%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"desert recreation news brought fresh guidance.", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20hiking%20advisory%20heat%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Heat Advisory Or Drought Update", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20heat%20advisory%20or%20drought%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Suns Headline", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20Suns%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Water Policy Update", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20water%20policy%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Airport Service Update", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20airport%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
   {
     city:"Las Vegas",
     lat:36.1699,lng:-115.1398,
     cards:[
-      {emoji:"🎰", clue:"Yesterday, late‑night foot traffic surged along the Strip."},
-      {emoji:"🎤", clue:"Yesterday, a major show drew huge lines outside an arena."},
-      {emoji:"🚧", clue:"Yesterday, detours popped up near a large event."},
-      {emoji:"🏟️", clue:"Yesterday, a stadium headline drove a spike in rideshares."}
+      {emoji:"🎰", clue:"Yesterday, a headline about Strip resort news had people talking."},
+      {emoji:"🎤", clue:"Yesterday, a headline about residency or big show announcement had people talking."},
+      {emoji:"🏎️", clue:"Yesterday, a headline about major race or event update had people talking."},
+      {emoji:"🚧", clue:"Yesterday, a headline about construction closure on the Strip had people talking."}
     ],
     stories:[
-      {headline:"late‑night foot traffic surged along the Strip.", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20Strip%20crowds%20night%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a major show drew huge lines outside an arena.", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20concert%20arena%20lines%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"detours popped up near a large event.", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20road%20closures%20event%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a stadium headline drove a spike in rideshares.", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20stadium%20event%20rideshare%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Strip Resort News", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20Strip%20resort%20news%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Residency Or Big Show Announcement", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20residency%20or%20big%20show%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Major Race Or Event Update", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20major%20race%20or%20event%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Construction Closure On The Strip", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20construction%20closure%20on%20the%20Strip%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
+  {
+    city:"Atlanta",
+    lat:33.749,lng:-84.388,
+    cards:[
+      {emoji:"✈️", clue:"Yesterday, a headline about ATL airport disruption had people talking."},
+      {emoji:"🏈", clue:"Yesterday, a headline about Falcons headline had people talking."},
+      {emoji:"🎬", clue:"Yesterday, a headline about Georgia film industry news had people talking."},
+      {emoji:"🚧", clue:"Yesterday, a headline about major highway closure had people talking."}
+    ],
+    stories:[
+      {headline:"Atl Airport Disruption", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20ATL%20airport%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Falcons Headline", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20Falcons%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Georgia Film Industry News", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20Georgia%20film%20industry%20news%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Major Highway Closure", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20major%20highway%20closure%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+  {
+    city:"Philadelphia",
+    lat:39.9526,lng:-75.1652,
+    cards:[
+      {emoji:"🔔", clue:"Yesterday, a headline about historic district headline had people talking."},
+      {emoji:"🏒", clue:"Yesterday, a headline about Flyers headline had people talking."},
+      {emoji:"🚇", clue:"Yesterday, a headline about SEPTA service update had people talking."},
+      {emoji:"⚾️", clue:"Yesterday, a headline about Phillies headline had people talking."}
+    ],
+    stories:[
+      {headline:"Historic District Headline", source:"Google News", url:"https://news.google.com/search?q=Philadelphia%20historic%20district%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Flyers Headline", source:"Google News", url:"https://news.google.com/search?q=Philadelphia%20Flyers%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Septa Service Update", source:"Google News", url:"https://news.google.com/search?q=Philadelphia%20SEPTA%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Phillies Headline", source:"Google News", url:"https://news.google.com/search?q=Philadelphia%20Phillies%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+  {
+    city:"Baltimore",
+    lat:39.2904,lng:-76.6122,
+    cards:[
+      {emoji:"⚓️", clue:"Yesterday, a headline about Port of Baltimore update had people talking."},
+      {emoji:"🏈", clue:"Yesterday, a headline about Ravens headline had people talking."},
+      {emoji:"🚧", clue:"Yesterday, a headline about traffic or infrastructure advisory had people talking."},
+      {emoji:"🦀", clue:"Yesterday, a headline about restaurant or harbor headline had people talking."}
+    ],
+    stories:[
+      {headline:"Port Of Baltimore Update", source:"Google News", url:"https://news.google.com/search?q=Baltimore%20Port%20of%20Baltimore%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Ravens Headline", source:"Google News", url:"https://news.google.com/search?q=Baltimore%20Ravens%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Traffic Or Infrastructure Advisory", source:"Google News", url:"https://news.google.com/search?q=Baltimore%20traffic%20or%20infrastructure%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Restaurant Or Harbor Headline", source:"Google News", url:"https://news.google.com/search?q=Baltimore%20restaurant%20or%20harbor%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
   {
     city:"New Orleans",
     lat:29.9511,lng:-90.0715,
     cards:[
-      {emoji:"🎺", clue:"Yesterday, live music spilled onto a crowded corner."},
-      {emoji:"🎭", clue:"Yesterday, parade logistics reshaped traffic for blocks."},
-      {emoji:"🌧️", clue:"Yesterday, heavy rain brought street‑flooding updates."},
-      {emoji:"🍤", clue:"Yesterday, a food festival story had locals lining up."}
+      {emoji:"🎺", clue:"Yesterday, a headline about festival or parade update had people talking."},
+      {emoji:"🏈", clue:"Yesterday, a headline about Saints headline had people talking."},
+      {emoji:"🌀", clue:"Yesterday, a headline about tropical weather watch had people talking."},
+      {emoji:"🍽️", clue:"Yesterday, a headline about restaurant or food scene spotlight had people talking."}
     ],
     stories:[
-      {headline:"live music spilled onto a crowded corner.", source:"Google News", url:"https://news.google.com/search?q=French%20Quarter%20live%20jazz%20crowd%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"parade logistics reshaped traffic for blocks.", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20parade%20route%20traffic%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"heavy rain brought street‑flooding updates.", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20street%20flooding%20rain%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a food festival story had locals lining up.", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20food%20festival%20line%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Festival Or Parade Update", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20festival%20or%20parade%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Saints Headline", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20Saints%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Tropical Weather Watch", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20tropical%20weather%20watch%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Restaurant Or Food Scene Spotlight", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20restaurant%20or%20food%20scene%20spotlight%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
+  {
+    city:"Nashville",
+    lat:36.1627,lng:-86.7816,
+    cards:[
+      {emoji:"🎶", clue:"Yesterday, a headline about music industry headline had people talking."},
+      {emoji:"🏟️", clue:"Yesterday, a headline about stadium or development update had people talking."},
+      {emoji:"🏒", clue:"Yesterday, a headline about Predators headline had people talking."},
+      {emoji:"🌩️", clue:"Yesterday, a headline about storm advisory had people talking."}
+    ],
+    stories:[
+      {headline:"Music Industry Headline", source:"Google News", url:"https://news.google.com/search?q=Nashville%20music%20industry%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Stadium Or Development Update", source:"Google News", url:"https://news.google.com/search?q=Nashville%20stadium%20or%20development%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Predators Headline", source:"Google News", url:"https://news.google.com/search?q=Nashville%20Predators%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Storm Advisory", source:"Google News", url:"https://news.google.com/search?q=Nashville%20storm%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+  {
+    city:"Minneapolis",
+    lat:44.9778,lng:-93.265,
+    cards:[
+      {emoji:"❄️", clue:"Yesterday, a headline about winter storm warning had people talking."},
+      {emoji:"🏀", clue:"Yesterday, a headline about Timberwolves headline had people talking."},
+      {emoji:"🏈", clue:"Yesterday, a headline about Vikings headline had people talking."},
+      {emoji:"🚇", clue:"Yesterday, a headline about transit service update had people talking."}
+    ],
+    stories:[
+      {headline:"Winter Storm Warning", source:"Google News", url:"https://news.google.com/search?q=Minneapolis%20winter%20storm%20warning%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Timberwolves Headline", source:"Google News", url:"https://news.google.com/search?q=Minneapolis%20Timberwolves%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Vikings Headline", source:"Google News", url:"https://news.google.com/search?q=Minneapolis%20Vikings%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Transit Service Update", source:"Google News", url:"https://news.google.com/search?q=Minneapolis%20transit%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+  {
+    city:"Detroit",
+    lat:42.3314,lng:-83.0458,
+    cards:[
+      {emoji:"🚗", clue:"Yesterday, a headline about auto industry announcement had people talking."},
+      {emoji:"🏒", clue:"Yesterday, a headline about Red Wings headline had people talking."},
+      {emoji:"🏈", clue:"Yesterday, a headline about Lions headline had people talking."},
+      {emoji:"🏗️", clue:"Yesterday, a headline about downtown redevelopment plan had people talking."}
+    ],
+    stories:[
+      {headline:"Auto Industry Announcement", source:"Google News", url:"https://news.google.com/search?q=Detroit%20auto%20industry%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Red Wings Headline", source:"Google News", url:"https://news.google.com/search?q=Detroit%20Red%20Wings%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Lions Headline", source:"Google News", url:"https://news.google.com/search?q=Detroit%20Lions%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Downtown Redevelopment Plan", source:"Google News", url:"https://news.google.com/search?q=Detroit%20downtown%20redevelopment%20plan%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+  {
+    city:"Charlotte",
+    lat:35.2271,lng:-80.8431,
+    cards:[
+      {emoji:"🏦", clue:"Yesterday, a headline about banking HQ business headline had people talking."},
+      {emoji:"🏈", clue:"Yesterday, a headline about Panthers headline had people talking."},
+      {emoji:"🏎️", clue:"Yesterday, a headline about motorsport/NASCAR update had people talking."},
+      {emoji:"🚧", clue:"Yesterday, a headline about I-77 closure or traffic had people talking."}
+    ],
+    stories:[
+      {headline:"Banking Hq Business Headline", source:"Google News", url:"https://news.google.com/search?q=Charlotte%20banking%20HQ%20business%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Panthers Headline", source:"Google News", url:"https://news.google.com/search?q=Charlotte%20Panthers%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Motorsport/Nascar Update", source:"Google News", url:"https://news.google.com/search?q=Charlotte%20motorsport/NASCAR%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"I-77 Closure Or Traffic", source:"Google News", url:"https://news.google.com/search?q=Charlotte%20I-77%20closure%20or%20traffic%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
   {
     city:"Toronto",
     lat:43.6532,lng:-79.3832,
     cards:[
-      {emoji:"🚇", clue:"Yesterday, transit notices changed routes across the city."},
-      {emoji:"🏒", clue:"Yesterday, a game night packed bars and trains."},
-      {emoji:"🌨️", clue:"Yesterday, snow cleanup and advisories dominated local updates."},
-      {emoji:"🏙️", clue:"Yesterday, a downtown event kept streets busy late."}
+      {emoji:"🏒", clue:"Yesterday, a headline about Maple Leafs headline had people talking."},
+      {emoji:"🏙️", clue:"Yesterday, a headline about city council decision had people talking."},
+      {emoji:"🚇", clue:"Yesterday, a headline about TTC service disruption had people talking."},
+      {emoji:"🎤", clue:"Yesterday, a headline about arena show announcement had people talking."}
     ],
     stories:[
-      {headline:"transit notices changed routes across the city.", source:"Google News", url:"https://news.google.com/search?q=TTC%20service%20disruption%20Toronto%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a game night packed bars and trains.", source:"Google News", url:"https://news.google.com/search?q=Toronto%20game%20night%20crowds%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"snow cleanup and advisories dominated local updates.", source:"Google News", url:"https://news.google.com/search?q=Toronto%20snow%20advisory%20cleanup%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a downtown event kept streets busy late.", source:"Google News", url:"https://news.google.com/search?q=Toronto%20downtown%20event%20crowd%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Maple Leafs Headline", source:"Google News", url:"https://news.google.com/search?q=Toronto%20Maple%20Leafs%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"City Council Decision", source:"Google News", url:"https://news.google.com/search?q=Toronto%20city%20council%20decision%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Ttc Service Disruption", source:"Google News", url:"https://news.google.com/search?q=Toronto%20TTC%20service%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Arena Show Announcement", source:"Google News", url:"https://news.google.com/search?q=Toronto%20arena%20show%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
+  {
+    city:"Vancouver",
+    lat:49.2827,lng:-123.1207,
+    cards:[
+      {emoji:"🌲", clue:"Yesterday, a headline about housing or city policy headline had people talking."},
+      {emoji:"🚆", clue:"Yesterday, a headline about transit update SkyTrain had people talking."},
+      {emoji:"🏒", clue:"Yesterday, a headline about Canucks headline had people talking."},
+      {emoji:"🌧️", clue:"Yesterday, a headline about storm or flood advisory had people talking."}
+    ],
+    stories:[
+      {headline:"Housing Or City Policy Headline", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20housing%20or%20city%20policy%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Transit Update Skytrain", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20transit%20update%20SkyTrain%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Canucks Headline", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20Canucks%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Storm Or Flood Advisory", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20storm%20or%20flood%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+  {
+    city:"Mexico City",
+    lat:19.4326,lng:-99.1332,
+    cards:[
+      {emoji:"🏛️", clue:"Yesterday, a headline about government announcement had people talking."},
+      {emoji:"🚇", clue:"Yesterday, a headline about metro line update had people talking."},
+      {emoji:"🌮", clue:"Yesterday, a headline about food festival headline had people talking."},
+      {emoji:"⚽️", clue:"Yesterday, a headline about club match headline had people talking."}
+    ],
+    stories:[
+      {headline:"Government Announcement", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20government%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Metro Line Update", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20metro%20line%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Food Festival Headline", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20food%20festival%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Club Match Headline", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20club%20match%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
   {
     city:"London",
-    lat:51.5074,lng:-0.1278,
+    lat:51.5072,lng:-0.1276,
     cards:[
-      {emoji:"🚇", clue:"Yesterday, disruptions rippled through the Underground."},
-      {emoji:"⚽️", clue:"Yesterday, matchday crowds turned streets into rivers."},
-      {emoji:"🏛️", clue:"Yesterday, a major vote kept Parliament in the headlines."},
-      {emoji:"🛫", clue:"Yesterday, travelers tracked delays at a major airport."}
+      {emoji:"🚇", clue:"Yesterday, a headline about Tube disruption had people talking."},
+      {emoji:"⚽️", clue:"Yesterday, a headline about Premier League London club headline had people talking."},
+      {emoji:"🏛️", clue:"Yesterday, a headline about Parliament vote headline had people talking."},
+      {emoji:"🎭", clue:"Yesterday, a headline about West End opening had people talking."}
     ],
     stories:[
-      {headline:"disruptions rippled through the Underground.", source:"Google News", url:"https://news.google.com/search?q=London%20Underground%20disruption%20today%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"matchday crowds turned streets into rivers.", source:"Google News", url:"https://news.google.com/search?q=London%20matchday%20crowds%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a major vote kept Parliament in the headlines.", source:"Google News", url:"https://news.google.com/search?q=UK%20Parliament%20vote%20today%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"travelers tracked delays at a major airport.", source:"Google News", url:"https://news.google.com/search?q=Heathrow%20delays%20cancellations%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Tube Disruption", source:"Google News", url:"https://news.google.com/search?q=London%20Tube%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Premier League London Club Headline", source:"Google News", url:"https://news.google.com/search?q=London%20Premier%20League%20London%20club%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Parliament Vote Headline", source:"Google News", url:"https://news.google.com/search?q=London%20Parliament%20vote%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"West End Opening", source:"Google News", url:"https://news.google.com/search?q=London%20West%20End%20opening%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
   {
     city:"Paris",
     lat:48.8566,lng:2.3522,
     cards:[
-      {emoji:"🚇", clue:"Yesterday, Metro updates reshaped commutes across lines."},
-      {emoji:"🗼", clue:"Yesterday, security queues lengthened near a famous landmark."},
-      {emoji:"🎨", clue:"Yesterday, museum crowds surged for a popular exhibit."},
-      {emoji:"⚽️", clue:"Yesterday, a big match pushed nightlife late into the night."}
+      {emoji:"🗼", clue:"Yesterday, a headline about landmark area headline had people talking."},
+      {emoji:"🚇", clue:"Yesterday, a headline about Metro strike or disruption had people talking."},
+      {emoji:"⚽️", clue:"Yesterday, a headline about PSG headline had people talking."},
+      {emoji:"🎨", clue:"Yesterday, a headline about museum exhibit opening had people talking."}
     ],
     stories:[
-      {headline:"Metro updates reshaped commutes across lines.", source:"Google News", url:"https://news.google.com/search?q=Paris%20Metro%20disruption%20today%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"security queues lengthened near a famous landmark.", source:"Google News", url:"https://news.google.com/search?q=Eiffel%20Tower%20security%20lines%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"museum crowds surged for a popular exhibit.", source:"Google News", url:"https://news.google.com/search?q=Paris%20museum%20exhibit%20crowd%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a big match pushed nightlife late into the night.", source:"Google News", url:"https://news.google.com/search?q=Paris%20match%20crowd%20nightlife%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Landmark Area Headline", source:"Google News", url:"https://news.google.com/search?q=Paris%20landmark%20area%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Metro Strike Or Disruption", source:"Google News", url:"https://news.google.com/search?q=Paris%20Metro%20strike%20or%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Psg Headline", source:"Google News", url:"https://news.google.com/search?q=Paris%20PSG%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Museum Exhibit Opening", source:"Google News", url:"https://news.google.com/search?q=Paris%20museum%20exhibit%20opening%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
   {
     city:"Tokyo",
     lat:35.6762,lng:139.6503,
     cards:[
-      {emoji:"🚉", clue:"Yesterday, station crowds surged at peak hour."},
-      {emoji:"🌸", clue:"Yesterday, early signs of blossom season drew attention."},
-      {emoji:"🌀", clue:"Yesterday, weather alerts shaped schedules across the city."},
-      {emoji:"🍜", clue:"Yesterday, a food trend sent people lining up for noodles."}
+      {emoji:"🚄", clue:"Yesterday, a headline about rail service update had people talking."},
+      {emoji:"🏯", clue:"Yesterday, a headline about policy announcement had people talking."},
+      {emoji:"🎮", clue:"Yesterday, a headline about gaming industry headline had people talking."},
+      {emoji:"🍣", clue:"Yesterday, a headline about food trend headline had people talking."}
     ],
     stories:[
-      {headline:"station crowds surged at peak hour.", source:"Google News", url:"https://news.google.com/search?q=Shinjuku%20Station%20crowd%20rush%20hour%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"early signs of blossom season drew attention.", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20early%20cherry%20blossom%20report%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"weather alerts shaped schedules across the city.", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20weather%20alert%20transit%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"a food trend sent people lining up for noodles.", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20ramen%20line%20new%20shop%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Rail Service Update", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20rail%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Policy Announcement", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20policy%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Gaming Industry Headline", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20gaming%20industry%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Food Trend Headline", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20food%20trend%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
+
   {
     city:"Sydney",
     lat:-33.8688,lng:151.2093,
     cards:[
-      {emoji:"🎼", clue:"Yesterday, a harbor‑side performance drew an evening crowd."},
-      {emoji:"🌉", clue:"Yesterday, traffic slowed near an iconic bridge approach."},
-      {emoji:"🏖️", clue:"Yesterday, surf conditions triggered warnings and flags."},
-      {emoji:"🔥", clue:"Yesterday, heat or fire updates prompted public guidance."}
+      {emoji:"🏄", clue:"Yesterday, a headline about beach safety advisory had people talking."},
+      {emoji:"🎆", clue:"Yesterday, a headline about harbour event update had people talking."},
+      {emoji:"🏉", clue:"Yesterday, a headline about match headline had people talking."},
+      {emoji:"🌧️", clue:"Yesterday, a headline about storm warning had people talking."}
     ],
     stories:[
-      {headline:"a harbor‑side performance drew an evening crowd.", source:"Google News", url:"https://news.google.com/search?q=Sydney%20Opera%20House%20performance%20crowd%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"traffic slowed near an iconic bridge approach.", source:"Google News", url:"https://news.google.com/search?q=Sydney%20Harbour%20Bridge%20traffic%20delay%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"surf conditions triggered warnings and flags.", source:"Google News", url:"https://news.google.com/search?q=Bondi%20surf%20conditions%20warning%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"heat or fire updates prompted public guidance.", source:"Google News", url:"https://news.google.com/search?q=Sydney%20heat%20warning%20update%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Beach Safety Advisory", source:"Google News", url:"https://news.google.com/search?q=Sydney%20beach%20safety%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Harbour Event Update", source:"Google News", url:"https://news.google.com/search?q=Sydney%20harbour%20event%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Match Headline", source:"Google News", url:"https://news.google.com/search?q=Sydney%20match%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Storm Warning", source:"Google News", url:"https://news.google.com/search?q=Sydney%20storm%20warning%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   }
 ];
@@ -954,7 +1166,12 @@ function finish(win){
 
   const storyEmojis = chosenCards.map(c=>c.emoji).join("");
   const boxes = guesses.map(heat).join("");
-  const text = `YESTERDAY ${dayKey}\n${storyEmojis}\n${boxes}\n${win?"Solved":"Revealed"} ${guesses.length}/${MAX}\n`;
+  const resultsNoUrl = `YESTERDAY  ${dayKey}
+${storyEmojis}
+${boxes}
+${win ? `I got Yesterday in ${guesses.length}/${MAX}` : `I gave up on Yesterday`}`;
+  const resultsWithUrl = resultsNoUrl + `
+https://dcmetrocentric.github.io/yesterday/`;
 
   document.getElementById("modal").style.display="flex";
   document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
@@ -962,7 +1179,9 @@ function finish(win){
 
   const winPct = s.played ? Math.round((s.wins/s.played)*100) : 0;
   document.getElementById("miniStats").textContent = `Streak ${s.cur||0} • Max ${s.max||0} • Played ${s.played} • Win ${winPct}%`;
-  document.getElementById("shareBox").textContent = text;
+  document.getElementById("shareBox").textContent = resultsNoUrl;
+  window.__yShareNoUrl = resultsNoUrl;
+  window.__yShareWithUrl = resultsWithUrl;
 
   // render stories (titles only)
   const stories=document.getElementById("stories");
@@ -980,9 +1199,10 @@ function finish(win){
 
 // share -> native share sheet or SMS compose
 document.getElementById("shareBtn").onclick=async()=>{
-  const text=document.getElementById("shareBox").textContent;
-  if(navigator.share){ try{ await navigator.share({text}); return; }catch(e){} }
-  window.location.href="sms:?&body="+encodeURIComponent(text);
+  const resultsText = window.__yShareNoUrl || document.getElementById("shareBox").textContent;
+  const smsText = window.__yShareWithUrl || (resultsText + "\nhttps://dcmetrocentric.github.io/yesterday/");
+if(navigator.share){ try{ await navigator.share({ title:"Yesterday", text: resultsText, url: "https://dcmetrocentric.github.io/yesterday/" }); return; }catch(e){} }
+  window.location.href="sms:?&body="+encodeURIComponent(smsText);
 };
 
 updateCount();
