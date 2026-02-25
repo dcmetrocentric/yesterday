@@ -2338,8 +2338,10 @@ https://dcmetrocentric.github.io/yesterday/`;
   document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
   document.getElementById("answerLine").textContent = "Answer: " + answer.name;
 
+
+  if(win && window.__confettiBurst){ setTimeout(()=>{ try{ window.__confettiBurst(3000); }catch(e){} }, 120); }
   const winPct = s.played ? Math.round((s.wins/s.played)*100) : 0;
-  document.getElementById("miniStats").textContent = `Streak ${s.cur||0} • Max ${s.max||0} • Played ${s.played} • Win ${winPct}%`;
+  document.getElementById("miniStats").textContent = `Streak ${s.cur||0} • Played ${s.played} • Win ${winPct}%`;
   document.getElementById("shareBox").textContent = resultsNoUrl;
   window.__yShareNoUrl = resultsNoUrl;
   window.__yShareWithUrl = resultsWithUrl;
