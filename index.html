@@ -639,6 +639,61 @@ html, body { overflow-x: hidden; }
   white-space:nowrap;
 }
 
+
+/* Sticky footer in Solved modal */
+#modalFooterBar{
+  position: sticky;
+  bottom: 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  background: rgba(255,255,255,0.95);
+  border-top:1px solid rgba(0,0,0,.12);
+}
+#modalFooterBar #modalCountdown{
+  font-family: "Old Standard TT", Georgia, serif;
+  font-size: 12px;
+  font-weight:700;
+  opacity:.9;
+}
+
+
+/* Countdown bar inside solved modal */
+#modalCountdownBar{
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 12px;
+  border-top:1px solid rgba(0,0,0,.12);
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:12px;
+  font-weight:700;
+  opacity:.9;
+}
+#modalCountdown{font-variant-numeric:tabular-nums;}
+
+
+/* Inline countdown next to Close */
+.modalBtns{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:nowrap;
+}
+#modalCountdownInline{
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:12px;
+  font-weight:700;
+  opacity:.9;
+  white-space:nowrap;
+  flex:1;
+}
+#modalCountdownInline .prefix{ margin-right:6px; }
+
 </style>
 </head>
 <body>
@@ -696,7 +751,7 @@ html, body { overflow-x: hidden; }
       <div class="stories" id="stories" class="fpList"></div>
     </div>
 
-    <div class="modalBtns">
+    <div class="modalBtns"><span id="modalCountdownInline"><span class="prefix">Next puzzle in </span><span id="modalCountdown"></span></span>
       <button id="shareBtn">Share</button>
       <button class="ghost" onclick="location.reload()">Close</button>
     </div>
@@ -2046,21 +2101,127 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 
+
 <script>
-// Mirror the main countdown into the Solved modal footer
-function syncModalCountdown(){
-  const main = document.getElementById('timer');
-  const modal = document.getElementById('modalCountdown');
-  if(!modal) return;
-  if(main && main.textContent){
-    modal.textContent = main.textContent.replace(/^\s*Next Puzzle in\s*/i,'Next: ');
-  }else{
-    modal.textContent = '';
-  }
+// Countdown in Solved modal footer (independent of header)
+
+function tzOffsetMinutes(tz, date){
+  // returns offset minutes such that local = utc + offset
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' });
+  const parts = fmt.formatToParts(date);
+  const tzName = (parts.find(p=>p.type==='timeZoneName')||{}).value || 'GMT';
+  // Examples: "GMT-5", "GMT-05:00", "GMT+1"
+  const m = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
+  if(!m) return 0;
+  const sign = m[1] === '-' ? -1 : 1;
+  const hh = parseInt(m[2],10);
+  const mm = m[3] ? parseInt(m[3],10) : 0;
+  return sign * (hh*60 + mm);
 }
-// update every second
+
+function msUntilMidnightET(){
+  const tz = 'America/New_York';
+  const now = new Date();
+
+  // Get today's date in NY
+  const p = new Intl.DateTimeFormat('en-US', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit' })
+    .formatToParts(now).reduce((a,x)=>{a[x.type]=x.value; return a;}, {});
+  const y = parseInt(p.year,10);
+  const m = parseInt(p.month,10);
+  const d = parseInt(p.day,10);
+
+  // Target: next day's midnight in NY (00:00:00)
+  // Start with a UTC guess for that wall-clock time, then iteratively adjust using timezone offset.
+  let utcGuess = new Date(Date.UTC(y, m-1, d+1, 0, 0, 0));
+  for(let i=0;i<3;i++){
+    const offMin = tzOffsetMinutes(tz, utcGuess);
+    const correctedMs = Date.UTC(y, m-1, d+1, 0, 0, 0) - offMin*60*1000;
+    utcGuess = new Date(correctedMs);
+  }
+
+  return Math.max(0, utcGuess.getTime() - now.getTime());
+}
+
+function fmtCountdown(ms){
+  const total = Math.max(0, Math.floor(ms/1000));
+  const h = String(Math.floor(total/3600)).padStart(2,'0');
+  const m = String(Math.floor((total%3600)/60)).padStart(2,'0');
+  const s = String(total%60).padStart(2,'0');
+  return `Next: ${h}:${m}:${s}`;
+}
+function syncModalCountdown(){
+  const el = document.getElementById('modalCountdown');
+  if(!el) return;
+  el.textContent = fmtCountdown(msUntilMidnightET());
+}
 setInterval(syncModalCountdown, 1000);
 document.addEventListener('DOMContentLoaded', syncModalCountdown);
+</script>
+
+
+
+<script>
+function msUntilMidnightET(){
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-US',{
+    timeZone:'America/New_York',
+    year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',
+    hour12:false
+  }).formatToParts(now).reduce((a,p)=>{a[p.type]=p.value;return a;},{});
+  const y=+parts.year,m=+parts.month,d=+parts.day;
+  const guessUTC = new Date(Date.UTC(y,m-1,d,0,0,0));
+  const p2 = new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})
+    .formatToParts(guessUTC).reduce((a,p)=>{a[p.type]=p.value;return a;},{});
+  const adj = (+p2.hour)*3600+(+p2.minute)*60+(+p2.second);
+  const nyMidnightUTC = new Date(guessUTC.getTime()-adj*1000);
+  const next = new Date(nyMidnightUTC.getTime()+24*3600*1000);
+  return Math.max(0,next.getTime()-Date.now());
+}
+function fmt(ms){
+  const t=Math.floor(ms/1000);
+  const h=String(Math.floor(t/3600)).padStart(2,'0');
+  const m=String(Math.floor((t%3600)/60)).padStart(2,'0');
+  const s=String(t%60).padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+function updateModalCountdown(){
+  const el=document.getElementById('modalCountdown');
+  if(!el) return;
+  el.textContent = fmt(msUntilMidnightET());
+}
+setInterval(updateModalCountdown, 1000);
+document.addEventListener('DOMContentLoaded', updateModalCountdown);
+</script>
+
+
+<script>
+// Reliable countdown to next midnight in America/New_York (modal)
+(function(){
+  function msUntilMidnightET(){
+    const now = new Date();
+    // NY wall-clock time interpreted in local timezone
+    const nyNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const nextNyMidnight = new Date(nyNow.getFullYear(), nyNow.getMonth(), nyNow.getDate()+1, 0, 0, 0);
+    return Math.max(0, nextNyMidnight.getTime() - now.getTime());
+  }
+  function fmt(ms){
+    const t=Math.floor(ms/1000);
+    const h=String(Math.floor(t/3600)).padStart(2,'0');
+    const m=String(Math.floor((t%3600)/60)).padStart(2,'0');
+    const s=String(t%60).padStart(2,'0');
+    return `${h}:${m}:${s}`;
+  }
+  function tick(){
+    const el = document.getElementById('modalCountdown');
+    if(!el) return;
+    el.textContent = fmt(msUntilMidnightET());
+  }
+  setInterval(tick, 1000);
+  document.addEventListener('DOMContentLoaded', tick);
+  // also update whenever modal opens (Solve / Give up)
+  document.addEventListener('click', ()=>setTimeout(tick, 50));
+})();
 </script>
 
 </body>
