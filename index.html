@@ -623,6 +623,22 @@ html, body { overflow-x: hidden; }
   display:block;
 }
 
+
+/* --- Solved modal footer timer --- */
+.modalFooter{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+#modalCountdown{
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:12px;
+  font-weight:700;
+  opacity:.85;
+  white-space:nowrap;
+}
+
 </style>
 </head>
 <body>
@@ -1740,11 +1756,8 @@ function pickPack(key){
   const r = makeRand(hashDate(key) ^ 0xBEEFCAFE);
   return Math.floor(r()*CITY_PACKS.length);
 }
-const TODAY_ROTATE = 3; // temporary bump to switch today's city
 let packIndex = pickPack(dayKey);
-packIndex = (packIndex + TODAY_ROTATE) % CITY_PACKS.length;
 // rotate to a new city today (testing)
-packIndex = (packIndex + 9) % CITY_PACKS.length;
 const yIndex = pickPack(ymdOffset(dayKey,-1));
 if (packIndex === yIndex) packIndex = (packIndex + 1) % CITY_PACKS.length;
 
@@ -2030,6 +2043,24 @@ document.addEventListener('DOMContentLoaded', function(){
     }catch(e){}
   });
 });
+</script>
+
+
+<script>
+// Mirror the main countdown into the Solved modal footer
+function syncModalCountdown(){
+  const main = document.getElementById('timer');
+  const modal = document.getElementById('modalCountdown');
+  if(!modal) return;
+  if(main && main.textContent){
+    modal.textContent = main.textContent.replace(/^\s*Next Puzzle in\s*/i,'Next: ');
+  }else{
+    modal.textContent = '';
+  }
+}
+// update every second
+setInterval(syncModalCountdown, 1000);
+document.addEventListener('DOMContentLoaded', syncModalCountdown);
 </script>
 
 </body>
