@@ -255,6 +255,260 @@ html, body { overflow-x: hidden; }
   .topbar{gap:10px;}
 }
 
+
+/* --- Newspaper masthead polish --- */
+.header .brand{
+  font-family: "UnifrakturCook","Old Standard TT", Georgia, serif;
+  letter-spacing: 2px;
+}
+.header .tagline,
+.header .sub{
+  font-family: "Old Standard TT", Georgia, serif;
+}
+.header .editionLine{
+  font-family: "Old Standard TT", Georgia, serif;
+}
+.header .editionLine:after{
+  content:"";
+  display:block;
+  border-bottom: 1px solid rgba(160,174,192,0.65);
+  margin-top: 6px;
+}
+.headerRule{height:1px;background:rgba(160,174,192,0.55);margin:10px 0 12px;}
+
+/* --- Mobile: make guess input wider --- */
+@media (max-width: 520px){
+  #guessInput{
+    width: 100%;
+    max-width: 100%;
+  }
+  .guessRow{
+    gap: 10px;
+  }
+}
+
+
+/* Hide puzzle id in header for cleaner masthead */
+#puzzleId, .puzzleId { display:none !important; }
+
+
+/* Position countdown in lower-right of header */
+.header{ position: relative; }
+#timer{
+  position:absolute;
+  right:0;
+  bottom:0;
+  font-family: "Old Standard TT", Georgia, serif;
+  font-size: 12px;
+  opacity: 0.85;
+  text-align:right;
+}
+@media (max-width:520px){
+  #timer{ bottom: 2px; }
+}
+
+
+/* Newspaper-style rule under masthead */
+.header{ padding-bottom: 18px; }
+.header:after{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  bottom: 14px;
+  height:1px;
+  background: rgba(160,174,192,0.55);
+}
+
+
+/* --- Alternate cleaner masthead layout --- */
+.topbar{
+  display:grid !important;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    "brand meta"
+    "tag meta"
+    "sub meta";
+  align-items:start !important;
+  padding:14px 14px 14px;
+}
+.brandWrap{grid-area:brand}
+.brand{
+  font-family: "UnifrakturCook","Old Standard TT", Georgia, serif !important;
+  font-size:34px !important;
+  letter-spacing:2px !important;
+}
+.tagline{
+  grid-area:tag;
+  margin-top:6px;
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:13px;
+  font-weight:700;
+  color: rgba(15,23,42,.78);
+}
+.sub{
+  grid-area:sub;
+  margin-top:6px !important;
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:12px !important;
+  font-weight:650 !important;
+  color: rgba(15,23,42,.72);
+}
+.rightMeta{
+  grid-area:meta;
+  display:grid;
+  grid-template-rows: auto 1fr auto;
+  align-items:start;
+  justify-items:end;
+  min-width: 160px;
+}
+.editionLine{font-family:"Old Standard TT", Georgia, serif !important;}
+.timer{
+  align-self:end;
+  justify-self:end;
+  font-family:"Old Standard TT", Georgia, serif !important;
+  font-size:12px !important;
+  opacity:.85;
+  margin-top:0 !important;
+}
+/* rule under masthead (newspaper line) */
+.topbar:after{
+  content:"";
+  grid-column: 1 / -1;
+  height:1px;
+  background: rgba(160,174,192,0.55);
+  margin-top:10px;
+}
+@media (max-width:520px){
+  .topbar{padding:12px 12px 12px}
+  .rightMeta{min-width:140px}
+  .brand{font-size:32px !important;}
+  .tagline{font-size:12.5px;}
+}
+
+
+/* --- Cleaner masthead layout adjustments --- */
+.topbar{
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "brand meta"
+    "rule rule"
+    "tag tag"
+    "sub sub";
+  position: relative;
+  padding-bottom: 28px;
+}
+.mastheadRule{
+  grid-area: rule;
+  height:1px;
+  background: rgba(160,174,192,0.55);
+  margin:10px 0 6px;
+}
+.tagline{ grid-area: tag; width:100%; }
+.sub{ grid-area: sub; width:100%; }
+.rightMeta{ grid-area: meta; align-self:start; }
+.timer{
+  position:absolute;
+  right:12px;
+  bottom:8px;
+}
+.brand{ white-space: normal; }
+
+
+/* ===== Header layout hard reset (no overlap) ===== */
+.header, .topbar { box-sizing: border-box; }
+.header { position: relative !important; }
+.header:after { content: none !important; }          /* disable older pseudo rules */
+.topbar:after { content: none !important; }          /* disable older pseudo rules */
+.headerRule { display: none !important; }            /* disable older external rule element */
+
+.topbar{
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  grid-auto-rows: auto;
+  gap: 8px 12px;
+  align-items: start !important;
+  justify-items: start;
+  padding: 14px 14px 10px !important;
+}
+
+.brandWrap, .brand { grid-column: 1 / 2; }
+.rightMeta{ 
+  grid-column: 2 / 3; 
+  justify-self: end !important; 
+  align-self: start !important;
+  display: grid !important;
+  gap: 6px;
+  justify-items: end;
+  text-align: right;
+  min-width: 0;
+}
+
+.editionLine{
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.15 !important;
+  font-family: "Old Standard TT", Georgia, serif !important;
+}
+
+#timer{
+  position: static !important;    /* kill any absolute positioning */
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.15 !important;
+  font-family: "Old Standard TT", Georgia, serif !important;
+  font-size: 12px !important;
+  opacity: .85;
+  white-space: nowrap;
+}
+
+.brand{
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  font-family: "UnifrakturCook","Old Standard TT", Georgia, serif !important;
+  letter-spacing: 2px !important;
+  font-size: 36px !important;
+  white-space: nowrap;
+}
+
+.mastheadRule{
+  grid-column: 1 / -1;
+  height: 1px;
+  width: 100%;
+  background: rgba(160,174,192,0.55);
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.tagline, .sub{
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: "Old Standard TT", Georgia, serif !important;
+}
+
+.tagline{
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: rgba(15,23,42,.80);
+}
+
+.sub{
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  color: rgba(15,23,42,.72);
+}
+
+/* Mobile: stack meta under title if needed */
+@media (max-width: 420px){
+  .topbar{ grid-template-columns: minmax(0,1fr); }
+  .rightMeta{ grid-column: 1 / -1; justify-self: start !important; justify-items: start; text-align:left; }
+  #timer{ white-space: normal; }
+  .brand{ font-size: 34px !important; white-space: normal; }
+}
+
 </style>
 </head>
 <body>
@@ -263,7 +517,8 @@ html, body { overflow-x: hidden; }
   <div class="topbar">
     <div class="brandWrap">
       <div class="brand">YESTERDAY</div>
-      <div class="tagline">Guess the city behind yesterdays biggest headlines</div>
+      <div class="mastheadRule" aria-hidden="true"></div>
+<div class="tagline">Guess the city behind yesterdays biggest headlines</div>
       <div class="sub">You get 5 guesses. Flip over each card for a clue.</div>
 </div>
     <div class="rightMeta">
