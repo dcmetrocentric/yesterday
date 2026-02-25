@@ -1,0 +1,2634 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+  <!-- Social preview (minimal to encourage compact iMessage link card) -->
+  <meta property="og:title" content="Yesterday — Guess the City">
+  <meta property="og:description" content="Four clues. One city.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Yesterday — Guess the City">
+  <meta name="twitter:description" content="Four clues. One city.">
+
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+
+
+  <!-- Social preview -->
+                  
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Yesterday — Guess the City</title>
+<style>
+:root{
+  --bg:#F2F0EA;--card:#fff;--ink:#0F172A;--muted:#64748B;--line:#E7E2D8;--radius:20px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--ink);display:flex;justify-content:center;padding:14px 12px 24px}
+.shell{width:min(820px,100%)}
+
+/* Header */
+.topbar{
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:linear-gradient(135deg,rgba(31,78,121,.14),rgba(43,108,176,.08));
+  padding:14px 14px 12px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.brandWrap{min-width:0}
+.brand{font-weight:1000;letter-spacing:.05em;font-size:30px;line-height:1;margin:0}
+.sub{margin:6px 0 0;font-size:13px;font-weight:760;color:rgba(15,23,42,.78)}
+.rightMeta{text-align:right}
+.metaLine{font-size:11px;color:var(--muted);font-weight:900}
+.timer{margin-top:4px;font-weight:950;font-size:12px;color:rgba(15,23,42,.85)}
+
+/* Card shell */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.grid{padding:12px;display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+.flip{aspect-ratio:1/1;perspective:1200px}
+.flipInner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.8,.2,1);cursor:pointer;border-radius:18px}
+.flip[data-flipped="true"] .flipInner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:18px;overflow:hidden;border:1px solid var(--line);backface-visibility:hidden;background:#fff}
+.front img{width:100%;height:100%;object-fit:cover;display:block}
+.front .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.52))}
+.front .tag{position:absolute;left:10px;top:10px;background:rgba(255,255,255,.92);padding:5px 9px;border-radius:999px;font-size:11px;font-weight:950}
+.back{transform:rotateY(180deg);padding:12px;display:flex;align-items:center;justify-content:center;text-align:left}
+.back p{margin:0;font-size:13px;line-height:1.45;font-weight:680;color:rgba(15,23,42,.92)}
+
+/* Input */
+.play{padding:12px;border-top:1px solid var(--line);background:rgba(242,240,234,.6)}
+.play h2{margin:0 0 8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.inputWrap{flex:1;display:flex;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+input{border:0;outline:none;width:100%;font-size:15px}
+button{background:#0F172A;color:#fff;border:1px solid #0F172A;border-radius:12px;padding:10px 12px;font-weight:950}
+button:disabled{opacity:.5}
+.ghost{background:#fff;color:#0F172A;border:1px solid var(--line)}
+.panel{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.count{font-size:11px;color:var(--muted);font-weight:900;margin-top:6px}
+.error{display:none;color:#7D2020;font-size:12px;margin-top:6px}
+
+/* Modal (single-screen) */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:14px}
+.modal .box{
+  width:min(760px,100%);
+  background:#fff;border-radius:18px;border:1px solid var(--line);
+  padding:14px;
+  max-height:92vh;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.modalTop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.modalTop h3{margin:0;font-size:20px}
+.miniStats{font-size:12px;color:rgba(15,23,42,.8);font-weight:900}
+.shareMini{
+  font-family:ui-monospace,monospace;
+  font-size:12px;
+  white-space:pre-wrap;
+  border:1px solid var(--line);
+  background:#f7f6f2;
+  border-radius:12px;
+  padding:8px;
+  line-height:1.25;
+}
+.paper{
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+}
+.paperHead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 10px;background:rgba(242,240,234,.7);border-bottom:1px solid var(--line)}
+.paperHead b{letter-spacing:.12em;text-transform:uppercase;font-size:11px}
+.paperHead span{font-size:11px;color:var(--muted);font-weight:900}
+.stories{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:10px;background:#fff}
+.story{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.storyImg{height:78px;background:#eee}
+.storyImg img{width:100%;height:100%;object-fit:cover;display:block}
+.storyBody{padding:9px}
+.storyTitle{font-weight:950;font-size:12.5px;line-height:1.2;margin:0 0 5px}
+.storyMeta{font-size:11px;color:var(--muted);font-weight:900}
+.story a{color:inherit;text-decoration:none}
+.story a:hover{text-decoration:underline}
+.modalBtns{display:flex;gap:8px;justify-content:flex-end}
+@media (max-width:420px){
+  .brand{font-size:28px}
+  .stories{gap:7px}
+  .storyImg{height:70px}
+  .storyTitle{font-size:12px}
+}
+
+.card-front img, .fp-card img{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+
+
+.emojiFront{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:88px;line-height:1;}
+
+
+/* --- Mobile polish: centered layout + no horizontal scroll anywhere --- */
+html, body { width:100%; overflow-x:hidden; }
+*, *::before, *::after { box-sizing:border-box; }
+
+@media (max-width: 520px){
+  /* Center the whole game on phone with a touch more right padding */
+  body{ padding-left:16px !important; padding-right:18px !important; }
+  .shell, .wrap, .container, .main { width:100% !important; max-width: 520px !important; margin: 0 auto !important; }
+}
+
+/* Modal sizing: never require left/right scrolling */
+.modal, .dialog, .sheet, .overlay .panel{
+  max-width: 720px;
+  width: min(720px, 94vw);
+}
+@media (max-width: 520px){
+  .modal, .dialog, .sheet, .overlay .panel{
+    width: 94vw !important;
+    max-width: 94vw !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+  .modal * { max-width: 100%; }
+}
+
+/* Front page grid: collapse to one column on small screens to avoid side scroll */
+@media (max-width: 520px){
+  .frontpage, .fp-grid, .front-grid, .storiesGrid, .stories-grid{
+    display:grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* Ensure any fixed-width tiles/images never overflow */
+img{ max-width:100%; height:auto; }
+
+
+/* --- Modal centering + mobile front page grid --- */
+.modal{padding:14px 18px;}
+.box{margin:0 auto; overflow-y:auto;}
+@media (max-width: 520px){
+  .box{width:94vw; max-width:94vw; }
+  .stories{grid-template-columns:1fr;}
+}
+
+
+/* --- Modal centering + compact mobile (no sideways scroll) --- */
+html, body { overflow-x: hidden; }
+.overlay { display:flex; align-items:center; justify-content:center; padding:14px; }
+.overlay .panel, .modal, .dialog { margin:0 auto; }
+
+@media (max-width: 520px){
+  body { padding-left:16px !important; padding-right:22px !important; }
+  .overlay { padding:10px; }
+  .overlay .panel, .modal, .dialog, .sheet { width: 94vw !important; max-width: 94vw !important; }
+  /* Front Page back to 2x2 grid, compact tiles */
+  .frontpage, .fp-grid, .front-grid, .storiesGrid, .stories-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  img{ max-width:100%; height:auto; }
+  /* Make tiles shorter so popup fits without scrolling sideways */
+  .fp-card img, .storyCard img, .story-tile img { height: 82px !important; object-fit: cover !important; }
+  .fp-card .title, .storyCard .title, .story-tile .title { font-size: 14px !important; line-height: 1.15 !important; }
+  .fp-card .src, .storyCard .src, .story-tile .src { font-size: 12px !important; }
+  .overlay .panel { max-height: 92vh; overflow-y: auto; overflow-x: hidden; }
+}
+
+
+/* Answer emphasis */
+#answerLine{font-weight:800;font-size:16px;}
+
+
+/* Front Page titles-only list */
+.fpList{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media (max-width:520px){ .fpList{gap:10px;} }
+.fpItem{padding:10px;border:1px solid rgba(0,0,0,.10);border-radius:14px;background:#fff;}
+.fpItem a{text-decoration:none;color:inherit;display:block;}
+.fpTitle{font-family:Georgia,"Times New Roman",Times,serif;font-weight:700;font-size:15px;line-height:1.15;}
+.fpSource{margin-top:6px;font-size:12px;opacity:.75;}
+
+
+/* Gothic newspaper headlines */
+.fpTitle{
+  text-transform: uppercase;
+  font-family: 'Cinzel','UnifrakturCook', Georgia, 'Times New Roman', serif !important;
+  letter-spacing: 0.6px;
+}
+
+
+/* Edition date styling */
+.editionLine{
+  margin-top:6px;
+  font-size:13px;
+  opacity:0.8;
+}
+/* Reveal as small text link */
+.revealLink{
+  background:none !important;
+  border:none !important;
+  color:#2b6cb0 !important;
+  text-decoration:underline;
+  font-size:12px !important;
+  padding:0 !important;
+  margin-left:10px;
+}
+
+
+#confettiCanvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;}
+
+/* Masthead adjustments */
+.topbar{align-items:flex-start;}
+.brand{font-size:36px; font-weight:800; letter-spacing:3px; line-height:1;}
+.tagline{margin-top:6px; font-size:14px; opacity:0.9;}
+.rightMeta{align-items:flex-end;}
+.editionLine{font-size:12px; opacity:0.8; margin-bottom:6px; text-align:right;}
+@media (max-width:520px){
+  .brand{font-size:30px;}
+  .topbar{gap:10px;}
+}
+
+
+/* --- Newspaper masthead polish --- */
+.header .brand{
+  font-family: "UnifrakturCook","Old Standard TT", Georgia, serif;
+  letter-spacing: 2px;
+}
+.header .tagline,
+.header .sub{
+  font-family: "Old Standard TT", Georgia, serif;
+}
+.header .editionLine{
+  font-family: "Old Standard TT", Georgia, serif;
+}
+.header .editionLine:after{
+  content:"";
+  display:block;
+  border-bottom: 1px solid rgba(160,174,192,0.65);
+  margin-top: 6px;
+}
+.headerRule{height:1px;background:rgba(160,174,192,0.55);margin:10px 0 12px;}
+
+/* --- Mobile: make guess input wider --- */
+@media (max-width: 520px){
+  #guessInput{
+    width: 100%;
+    max-width: 100%;
+  }
+  .guessRow{
+    gap: 10px;
+  }
+}
+
+
+/* Hide puzzle id in header for cleaner masthead */
+#puzzleId, .puzzleId { display:none !important; }
+
+
+/* Position countdown in lower-right of header */
+.header{ position: relative; }
+#timer{
+  position:absolute;
+  right:0;
+  bottom:0;
+  font-family: "Old Standard TT", Georgia, serif;
+  font-size: 12px;
+  opacity: 0.85;
+  text-align:right;
+}
+@media (max-width:520px){
+  #timer{ bottom: 2px; }
+}
+
+
+/* Newspaper-style rule under masthead */
+.header{ padding-bottom: 18px; }
+.header:after{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  bottom: 14px;
+  height:1px;
+  background: rgba(160,174,192,0.55);
+}
+
+
+/* --- Alternate cleaner masthead layout --- */
+.topbar{
+  display:grid !important;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    "brand meta"
+    "tag meta"
+    "sub meta";
+  align-items:start !important;
+  padding:14px 14px 14px;
+}
+.brandWrap{grid-area:brand}
+.brand{
+  font-family: "UnifrakturCook","Old Standard TT", Georgia, serif !important;
+  font-size:34px !important;
+  letter-spacing:2px !important;
+}
+.tagline{
+  grid-area:tag;
+  margin-top:6px;
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:13px;
+  font-weight:700;
+  color: rgba(15,23,42,.78);
+}
+.sub{
+  grid-area:sub;
+  margin-top:6px !important;
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:12px !important;
+  font-weight:650 !important;
+  color: rgba(15,23,42,.72);
+}
+.rightMeta{
+  grid-area:meta;
+  display:grid;
+  grid-template-rows: auto 1fr auto;
+  align-items:start;
+  justify-items:end;
+  min-width: 160px;
+}
+.editionLine{font-family:"Old Standard TT", Georgia, serif !important;}
+.timer{
+  align-self:end;
+  justify-self:end;
+  font-family:"Old Standard TT", Georgia, serif !important;
+  font-size:12px !important;
+  opacity:.85;
+  margin-top:0 !important;
+}
+/* rule under masthead (newspaper line) */
+.topbar:after{
+  content:"";
+  grid-column: 1 / -1;
+  height:1px;
+  background: rgba(160,174,192,0.55);
+  margin-top:10px;
+}
+@media (max-width:520px){
+  .topbar{padding:12px 12px 12px}
+  .rightMeta{min-width:140px}
+  .brand{font-size:32px !important;}
+  .tagline{font-size:12.5px;}
+}
+
+
+/* --- Cleaner masthead layout adjustments --- */
+.topbar{
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "brand meta"
+    "rule rule"
+    "tag tag"
+    "sub sub";
+  position: relative;
+  padding-bottom: 28px;
+}
+.mastheadRule{
+  grid-area: rule;
+  height:1px;
+  background: rgba(160,174,192,0.55);
+  margin:10px 0 6px;
+}
+.tagline{ grid-area: tag; width:100%; }
+.sub{ grid-area: sub; width:100%; }
+.rightMeta{ grid-area: meta; align-self:start; }
+.timer{
+  position:absolute;
+  right:12px;
+  bottom:8px;
+}
+.brand{ white-space: normal; }
+
+
+/* ===== Header layout hard reset (no overlap) ===== */
+.header, .topbar { box-sizing: border-box; }
+.header { position: relative !important; }
+.header:after { content: none !important; }          /* disable older pseudo rules */
+.topbar:after { content: none !important; }          /* disable older pseudo rules */
+.headerRule { display: none !important; }            /* disable older external rule element */
+
+.topbar{
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: auto;
+  gap: 8px 12px;
+  align-items: start !important;
+  justify-items: start;
+  padding: 14px 14px 10px !important;
+}
+
+.brandWrap, .brand { grid-column: 1 / 2; }
+.rightMeta{ 
+  grid-column: 2 / 3; 
+  justify-self: end !important; 
+  align-self: start !important;
+  display: grid !important;
+  gap: 6px;
+  justify-items: end;
+  text-align: right;
+  min-width: 0;
+}
+
+.editionLine{
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.15 !important;
+  font-family: "Old Standard TT", Georgia, serif !important;
+}
+
+#timer{
+  position: static !important;    /* kill any absolute positioning */
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.15 !important;
+  font-family: "Old Standard TT", Georgia, serif !important;
+  font-size: 12px !important;
+  opacity: .85;
+  white-space: nowrap;
+}
+
+.brand{
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  font-family: "UnifrakturCook","Old Standard TT", Georgia, serif !important;
+  letter-spacing: 2px !important;
+  font-size: 36px !important;
+  white-space: nowrap;
+}
+
+.mastheadRule{
+  grid-column: 1 / -1;
+  height: 1px;
+  width: 100%;
+  background: rgba(160,174,192,0.55);
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.tagline, .sub{
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: "Old Standard TT", Georgia, serif !important;
+}
+
+.tagline{
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: rgba(15,23,42,.80);
+}
+
+.sub{
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  color: rgba(15,23,42,.72);
+}
+
+/* Mobile: stack meta under title if needed */
+@media (max-width: 420px){
+  .topbar{ grid-template-columns: minmax(0,1fr); }
+  .rightMeta{ grid-column: 1 / -1; justify-self: start !important; justify-items: start; text-align:left; }
+  #timer{ white-space: normal; }
+  .brand{ font-size: 34px !important; white-space: normal; }
+}
+
+
+/* --- Masthead: iconic block font + edition under title; hide countdown on start view --- */
+.brand{
+  font-family: "Old Standard TT", Impact, "Arial Black", Georgia, serif !important;
+  letter-spacing: 1px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+}
+.rightMeta{
+  grid-column: 1 / 2 !important;   /* place under title */
+  grid-row: 2 !important;
+  justify-self: start !important;
+  justify-items: start !important;
+  text-align:left !important;
+  margin-top: 2px;
+}
+.editionLine{
+  font-size: 12px !important;
+  opacity: .85;
+}
+#timer{ display:none !important; }   /* remove countdown from starting view */
+
+
+/* Header tweaks: edition directly under masthead, keep tagline on one line */
+.rightMeta{ margin-top: 0px !important; }
+.mastheadRule{ margin-top: 6px !important; }
+.tagline{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 420px){
+  .tagline{ font-size: 12.5px !important; }
+}
+
+
+/* --- Solved popup share layout --- */
+.shareWrap{display:flex;gap:12px;align-items:stretch;margin-top:8px}
+#shareBox{flex:1;white-space:pre-line;border:1px solid rgba(160,174,192,.5);border-radius:10px;padding:10px;background:rgba(248,250,252,.7);font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:13px}
+#shareBtn.shareBtnPrimary{min-width:110px;border-radius:12px;padding:12px 14px;font-weight:700;background:#1f3a8a;color:white;border:none}
+#shareBtn.shareBtnPrimary:active{transform:translateY(1px)}
+.shareHint{font-size:11px;opacity:.75;margin-top:6px;text-align:right}
+
+
+/* --- Professional Share Button --- */
+#shareBtn.shareBtnPrimary{
+  background: linear-gradient(180deg,#2f5cff 0%, #2447c7 100%);
+  color:#fff;
+  border-radius:14px;
+  padding:14px 16px;
+  font-size:15px;
+  letter-spacing:.2px;
+  box-shadow: 0 6px 14px rgba(36,71,199,.35), inset 0 1px 0 rgba(255,255,255,.15);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+#shareBtn.shareBtnPrimary::before{
+  content:"↗";
+  font-weight:900;
+  font-size:16px;
+  opacity:.95;
+}
+#shareBtn.shareBtnPrimary:hover{
+  filter:brightness(1.05);
+  box-shadow: 0 8px 18px rgba(36,71,199,.45), inset 0 1px 0 rgba(255,255,255,.2);
+}
+#shareBtn.shareBtnPrimary:active{
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(36,71,199,.35), inset 0 1px 0 rgba(255,255,255,.12);
+}
+#shareBtn.shareBtnPrimary:focus-visible{
+  outline: 3px solid rgba(47,92,255,.35);
+  outline-offset:2px;
+}
+
+
+/* streak display */
+.streakLine{
+  margin-top:10px;
+  font-family: "Old Standard TT", Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(15,23,42,.78);
+}
+
+
+/* --- Guess row spacing + input width + reveal link wrap --- */
+.guessRow{
+  align-items: center;
+  gap: 12px !important;
+}
+#guessInput{
+  width: 100% !important;
+  max-width: 520px;          /* desktop */
+}
+@media (max-width: 520px){
+  #guessInput{ max-width: none; }
+}
+#guessBtn, #submitBtn{
+  margin-left: 2px;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+#revealLink, .revealLink{
+  display: inline-block;
+  text-align: center;
+  line-height: 1.05;
+}
+#revealLink span, .revealLink span{
+  display:block;
+}
+
+
+/* --- Solved modal footer timer --- */
+.modalFooter{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+#modalCountdown{
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:12px;
+  font-weight:700;
+  opacity:.85;
+  white-space:nowrap;
+}
+
+
+/* Sticky footer in Solved modal */
+#modalFooterBar{
+  position: sticky;
+  bottom: 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  background: rgba(255,255,255,0.95);
+  border-top:1px solid rgba(0,0,0,.12);
+}
+#modalFooterBar #modalCountdown{
+  font-family: "Old Standard TT", Georgia, serif;
+  font-size: 12px;
+  font-weight:700;
+  opacity:.9;
+}
+
+
+/* Countdown bar inside solved modal */
+#modalCountdownBar{
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 12px;
+  border-top:1px solid rgba(0,0,0,.12);
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:12px;
+  font-weight:700;
+  opacity:.9;
+}
+#modalCountdown{font-variant-numeric:tabular-nums;}
+
+
+/* Inline countdown next to Close */
+.modalBtns{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:nowrap;
+}
+#modalCountdownInline{
+  font-family:"Old Standard TT", Georgia, serif;
+  font-size:12px;
+  font-weight:700;
+  opacity:.9;
+  white-space:nowrap;
+  flex:1;
+}
+#modalCountdownInline .prefix{ margin-right:6px; }
+
+
+
+/* =========================================================
+   Midnight Newsroom Theme (Day-of-Week Edition)
+   Drop-in overrides to make the UI iconic + dark/premium.
+   ========================================================= */
+:root{
+  --bg-0:#0b1323;
+  --bg-1:#0f1b2d;
+  --panel: rgba(16, 28, 49, 0.72);
+  --panel-border: rgba(255,255,255,0.10);
+
+  --card-bg: rgba(31, 54, 84, 0.45);
+  --card-border: rgba(255,255,255,0.12);
+
+  --text:#e6eef7;
+  --muted2: rgba(230,238,247,0.72);
+
+  --cyan:#58c4ff;
+  --gold:#f2c94c;
+
+  --shadow: 0 18px 45px rgba(0,0,0,0.45);
+  --radius: 22px; /* keep your existing variable name */
+}
+
+/* Page background */
+body{
+  font-family: Georgia, "Times New Roman", Times, ui-serif, serif !important;
+  color: var(--text) !important;
+  background:
+    radial-gradient(900px 500px at 50% 12%, rgba(88,196,255,0.18), transparent 55%),
+    radial-gradient(900px 700px at 50% 110%, rgba(242,201,76,0.10), transparent 60%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0)) !important;
+}
+
+/* Optional subtle grain */
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.10;
+  background-image:
+    repeating-radial-gradient(circle at 20% 30%, rgba(255,255,255,0.06) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+}
+
+/* Masthead / header */
+.topbar{
+  background: var(--panel) !important;
+  border: 1px solid var(--panel-border) !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: blur(10px);
+}
+
+.brand{
+  font-family: "Cinzel", Georgia, "Times New Roman", Times, serif !important;
+  letter-spacing: 0.08em !important;
+  font-weight: 800 !important;
+  font-size: 44px !important;
+  color: var(--text) !important;
+}
+
+.mastheadRule{
+  background: linear-gradient(90deg, transparent, rgba(88,196,255,0.55), transparent) !important;
+  height: 2px !important;
+  opacity: 1 !important;
+}
+
+.tagline{
+  color: var(--muted2) !important;
+  font-weight: 650 !important;
+}
+
+.sub{
+  color: var(--muted2) !important;
+  font-weight: 650 !important;
+}
+
+/* Edition line stays Day-of-Week; just restyle */
+.editionLine{
+  color: rgba(230,238,247,0.85) !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  font-weight: 750 !important;
+}
+
+/* Hide puzzle id (keep clean) */
+#puzzleId, .puzzleId{ display:none !important; }
+
+/* Main card container */
+.card{
+  background: rgba(16,28,49,0.55) !important;
+  border: 1px solid var(--panel-border) !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: blur(10px);
+}
+
+.grid{ padding: 14px !important; gap: 14px !important; }
+
+.face{
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+}
+
+/* Front overlay */
+.front .veil{
+  background: radial-gradient(500px 220px at 50% 0%, rgba(88,196,255,0.18), transparent 60%),
+              linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.52)) !important;
+}
+
+/* "Headline" chip (formerly Clue pill) */
+.front .tag{
+  background: rgba(15,27,45,0.62) !important;
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(230,238,247,0.95) !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 11px !important;
+  padding: 8px 10px !important;
+}
+
+/* Back clue text */
+.back p{
+  color: rgba(230,238,247,0.92) !important;
+  font-weight: 650 !important;
+}
+.back{
+  background:
+    radial-gradient(500px 220px at 50% 0%, rgba(88,196,255,0.10), transparent 60%),
+    rgba(31,54,84,0.35) !important;
+}
+
+/* Guess panel */
+.play{
+  background: rgba(16,28,49,0.55) !important;
+  border-top: 1px solid rgba(255,255,255,0.10) !important;
+}
+
+.play h2{
+  color: rgba(230,238,247,0.90) !important;
+  letter-spacing: 0.16em !important;
+  font-weight: 750 !important;
+}
+
+.inputWrap{
+  background: rgba(11,19,35,0.55) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+}
+
+#guessInput{
+  background: transparent !important;
+  color: var(--text) !important;
+  font-size: 16px !important; /* prevents iOS zoom */
+}
+
+#guessInput::placeholder{ color: rgba(230,238,247,0.55); }
+
+#guessInput:focus{
+  outline: none;
+}
+
+/* Guess button = gold signature */
+#submitBtn{
+  background: linear-gradient(180deg, rgba(242,201,76,0.95), rgba(194,150,38,0.95)) !important;
+  color: #1b1b1b !important;
+  border: 1px solid rgba(0,0,0,0.25) !important;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+
+#submitBtn:active{ transform: translateY(1px); }
+
+/* Reveal link */
+.revealLink{
+  color: rgba(88,196,255,0.95) !important;
+  text-decoration: underline !important;
+}
+
+/* Guess count + errors */
+.count{ color: rgba(230,238,247,0.70) !important; }
+.error{ color: rgba(255,180,180,0.95) !important; }
+
+/* Modal */
+.modal .box{
+  background: rgba(16,28,49,0.88) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow: var(--shadow) !important;
+  color: var(--text) !important;
+}
+
+.shareMini{
+  background: rgba(11,19,35,0.55) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: rgba(230,238,247,0.92) !important;
+}
+
+.paper{
+  background: rgba(11,19,35,0.35) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+}
+
+.paperHead{
+  background: rgba(11,19,35,0.55) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.10) !important;
+}
+
+.paperHead b{ color: rgba(230,238,247,0.90) !important; }
+.paperHead span{ color: rgba(242,201,76,0.90) !important; }
+
+.story{
+  background: rgba(31,54,84,0.35) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+}
+
+.storyMeta{ color: rgba(230,238,247,0.70) !important; }
+
+#shareBtn{
+  background: linear-gradient(180deg, rgba(88,196,255,0.95), rgba(47,92,255,0.90)) !important;
+  border: 1px solid rgba(0,0,0,0.20) !important;
+}
+
+/* Mobile sizing */
+@media (max-width:520px){
+  .brand{ font-size: 40px !important; }
+  .grid{ gap: 12px !important; padding: 12px !important; }
+}
+
+
+/* =========================
+   Midnight Newsroom — Solved Front Page Overrides (v2)
+   ========================= */
+.frontpage, .frontPage, .front-paper, .paper, .newspaper, .front{
+  background: rgba(16,28,49,0.62) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  color: var(--text, #e6eef7) !important;
+  border-radius: var(--radius-lg, 26px) !important;
+  box-shadow: var(--shadow, 0 18px 45px rgba(0,0,0,0.45)) !important;
+  backdrop-filter: blur(10px);
+}
+
+.fp-grid, .front-grid, .storiesGrid, .stories-grid{
+  background: transparent !important;
+}
+
+.story{
+  position: relative;
+  background: rgba(31, 54, 84, 0.45) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #e6eef7 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35) !important;
+  backdrop-filter: blur(6px);
+}
+
+.story::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: radial-gradient(500px 180px at 50% 0%, rgba(88,196,255,0.14), transparent 70%);
+  pointer-events:none;
+}
+
+.storyBody{ position: relative; z-index: 1; }
+
+.storyTitle{
+  color: #f2f6ff !important;
+}
+
+.storyMeta, .storyKicker, .storyDeck, .storySrc{
+  color: rgba(230,238,247,0.78) !important;
+}
+
+.story a{ color: rgba(88,196,255,0.95) !important; }
+.story a:visited{ color: rgba(88,196,255,0.85) !important; }
+
+.storyImg{ background: rgba(11,19,35,0.55) !important; }
+
+#shareBox{
+  background: rgba(11,19,35,0.55) !important;
+  color: #e6eef7 !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+}
+
+</style>
+
+<style id="midnight-solved-overrides">
+/* ===== Solved / Headlines modal dark theme ===== */
+:root{
+  --text:#e6eef7;
+}
+.modal{ background: rgba(11,19,35,0.65); }
+.modal .box{
+  background: rgba(16,28,49,0.92);
+  border:1px solid rgba(255,255,255,0.12);
+  color: var(--text);
+  backdrop-filter: blur(10px);
+}
+.modalTop h3{ color: var(--text); }
+.miniStats{ color: rgba(230,238,247,0.85); }
+
+.shareMini{
+  background: rgba(11,19,35,0.6);
+  border:1px solid rgba(255,255,255,0.12);
+  color: var(--text);
+}
+
+.paper{ border:1px solid rgba(255,255,255,0.12); background: transparent; }
+.paperHead{
+  background: rgba(15,27,45,0.6);
+  border-bottom:1px solid rgba(255,255,255,0.12);
+}
+.paperHead b{ color: rgba(242,201,76,0.95); }
+.paperHead span{ color: rgba(230,238,247,0.75); }
+
+.stories{ background: transparent; }
+.story{
+  background: rgba(31,54,84,0.45);
+  border:1px solid rgba(255,255,255,0.12);
+}
+.storyTitle{ color: var(--text); }
+.storyMeta{ color: rgba(230,238,247,0.7); }
+.story a{ color: inherit; }
+
+.modalBtns button{ background: linear-gradient(180deg, rgba(242,201,76,0.95), rgba(194,150,38,0.95)); color:#1b1b1b; border-color: rgba(0,0,0,0.25); }
+</style>
+
+
+
+<style id="final-dark-fixes">
+/* =====================================================
+   FINAL DARK FIXES — Distance Box + Solved Headlines
+   ===================================================== */
+
+/* ---------- DISTANCE / FEEDBACK BOX ---------- */
+#feedback,
+.panel{
+  background: rgba(31,54,84,0.45) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #e6eef7 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+}
+
+/* distance text */
+#feedback b,
+#feedback strong{
+  color:#f2c94c !important;   /* gold highlight */
+}
+
+/* ---------- SOLVED PAGE STORY GRID ---------- */
+.stories{
+  background: transparent !important;
+}
+
+/* headline cards */
+.story{
+  background: rgba(31,54,84,0.45) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color:#e6eef7 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35) !important;
+}
+
+/* title text */
+.storyTitle{
+  color:#f2f6ff !important;
+}
+
+/* source/meta text */
+.storyMeta{
+  color: rgba(230,238,247,0.75) !important;
+}
+
+/* image background (removes white flash) */
+.storyImg{
+  background: rgba(11,19,35,0.55) !important;
+}
+
+/* ---------- MODAL FOOTER (was bright white bar) ---------- */
+#modalFooterBar,
+#modalCountdownBar{
+  background: rgba(16,28,49,0.88) !important;
+  border-top:1px solid rgba(255,255,255,0.12) !important;
+  color:#e6eef7 !important;
+}
+</style>
+
+
+<style id="midnight-fpitem-fix">
+/* =====================================================
+   FIX: Solved "headline boxes" (titles-only list uses .fpItem)
+   ===================================================== */
+.fpList{ background: transparent !important; }
+.fpItem{
+  background: rgba(31,54,84,0.45) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #e6eef7 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35) !important;
+  backdrop-filter: blur(6px);
+}
+.fpTitle{ color: #f2f6ff !important; }
+.fpSource{ color: rgba(230,238,247,0.75) !important; }
+.fpItem a{ color: inherit !important; }
+.fpItem a:hover{ text-decoration: underline; }
+</style>
+
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="brandWrap">
+      <div class="brand">YESTERDAY</div>
+      <div class="mastheadRule" aria-hidden="true"></div>
+<div class="tagline">Guess the city behind yesterday’s biggest headlines</div>
+      <div class="sub">You get 5 guesses. Flip over each card for a clue.</div>
+</div>
+    <div class="rightMeta">
+      <div id="editionLine" class="editionLine"></div>
+      <div class="metaLine" id="puzzleId"></div>
+      <div class="timer" id="timer"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid" id="grid"></div>
+
+    <div class="play">
+      <h2>Guess the city</h2>
+      <div class="row">
+        <div class="inputWrap">
+          <input id="guessInput" placeholder="Type a city" autocomplete="off" list="citylist">
+          <datalist id="citylist"></datalist>
+        </div>
+        <button id="submitBtn">Guess</button>
+        <button class="revealLink ghost" id="revealBtn">Give up/<span>Reveal Answer</span></button>
+      </div>
+      <div class="count" id="count">0/5 guesses</div>
+      <div class="error" id="error">Unknown city. Try a major city (e.g., Boston, Los Angeles).</div>
+      <div class="panel" id="feedback" style="display:none"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal" id="modal">
+  <div class="box">
+    <div class="modalTop">
+      <h3 id="resultTitle">Solved!</h3>
+      <div class="miniStats" id="miniStats"></div>
+    </div>
+
+    <div class="shareMini" id="shareBox"></div>
+
+    <div class="paper">
+      <div class="paperHead">
+        <b>Yesterday’s Front Page</b>
+        <span id="answerLine"></span>
+      </div>
+      <div class="stories" id="stories" class="fpList"></div>
+    </div>
+
+    <div class="modalBtns"><span id="modalCountdownInline"><span class="prefix">Next puzzle in </span><span id="modalCountdown"></span></span>
+      <button id="shareBtn">Share</button>
+      <button class="ghost" onclick="location.reload()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// --- Answer & city aliases (canonicalization) ---
+const CITY_ALIASES = {
+  "New York": ["New York City","NYC"],
+};
+function canonicalCityName(name){
+  const n = normalizeName(name);
+  // direct match against pack names
+  for(const p of CITY_PACKS){
+    if(normalizeName(p.city) === n) return p.city;
+  }
+
+
+// --- Streak tracking (local-only) ---
+function getStreakState(){
+  try{
+    return JSON.parse(localStorage.getItem("yesterday_streak") || "{}");
+  }catch(e){ return {}; }
+}
+function setStreakState(state){
+  localStorage.setItem("yesterday_streak", JSON.stringify(state));
+}
+function dateKeyToInt(k){
+  // k is YYYY-MM-DD
+  return parseInt(k.replaceAll("-",""), 10);
+}
+function prevDateKeyET(dateKey){
+  // compute previous day from YYYY-MM-DD safely using UTC math
+  const [y,m,d] = dateKey.split("-").map(n=>parseInt(n,10));
+  const dt = new Date(Date.UTC(y, m-1, d));
+  dt.setUTCDate(dt.getUTCDate()-1);
+  const yy = dt.getUTCFullYear();
+  const mm = String(dt.getUTCMonth()+1).padStart(2,"0");
+  const dd = String(dt.getUTCDate()).padStart(2,"0");
+  return `${yy}-${mm}-${dd}`;
+}
+function updateStreakOnSolve(todayKey){
+  const st = getStreakState();
+  if(st.lastSolvedKey === todayKey){
+    return st; // already solved today
+  }
+  const yesterdayKey = prevDateKeyET(todayKey);
+  let cur = 1;
+  if(st.lastSolvedKey === yesterdayKey){
+    cur = (st.currentStreak || 0) + 1;
+  }
+  st.currentStreak = cur;
+  st.maxStreak = Math.max(st.maxStreak || 0, cur);
+  st.lastSolvedKey = todayKey;
+  setStreakState(st);
+  return st;
+}
+function getStreakDisplay(){
+  const st = getStreakState();
+  return {
+    current: st.currentStreak || 0,
+    best: st.maxStreak || 0
+  };
+}
+
+  // alias match
+  for(const [canon, arr] of Object.entries(CITY_ALIASES)){
+    if(arr.some(a => normalizeName(a) === n)) return canon;
+  }
+  return name;
+}
+
+
+  function buildShareText(){
+    try {
+      const dayLabel = (typeof dayKey !== "undefined") ? dayKey : "";
+      const emojisLine = (typeof currentPack !== "undefined" && currentPack?.cards)
+        ? currentPack.cards.map(c=>c.emoji||"").join("")
+        : "";
+      const gridLine = (typeof guessGrid !== "undefined") ? guessGrid : "";
+      const solvedLine = (typeof solved !== "undefined" && solved)
+        ? `I got Yesterday in ${guesses}/5`
+        : `Revealed ${guesses}/5`;
+      return `YESTERDAY  ${dayLabel}
+  function buildShareDisplayText(){
+    const t = buildShareText();
+    const lines = t.split('\n');
+    const last = (lines[lines.length-1]||'').trim();
+    if(last.startsWith('http')) lines.pop();
+    return lines.join('\n');
+  }
+
+${emojisLine}
+${gridLine}
+${solvedLine}`;
+  }
+catch(e) {
+      return `YESTERDAY  ${dayLabel}
+${emojisLine}
+${gridLine}
+${solvedLine}
+<>`;
+    }
+  }
+
+
+  function storyImage(city, headline, i){
+    const q = encodeURIComponent((city + " " + (headline||"")).replace(/[^a-zA-Z0-9\s]/g," ").trim());
+    return `https://source.unsplash.com/featured/800x500?${q}`;
+  }
+  function storyImageFallback(city, headline, i){
+    const seed = encodeURIComponent((city + "|" + (headline||"") + "|" + i).slice(0,120));
+    return `https://picsum.photos/seed/${seed}/800/500`;
+  }
+
+function previewImage(url){
+  return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=900`;
+}
+
+  async function resolvePreviewFromGoogleNewsSearch(searchUrl){
+    try{
+      const rssUrl = searchUrl.replace("https://news.google.com/search?", "https://news.google.com/rss/search?");
+      const proxy = "https://r.jina.ai/" + rssUrl;
+      const txt = await fetch(proxy, {cache:"force-cache"}).then(r=>r.text());
+      const m1 = txt.match(/media:content[^>]*url="([^"]+)"/i);
+      if(m1 && m1[1]) return {img:m1[1], link:null};
+      const m2 = txt.match(/<item>[\s\S]*?<link>([^<]+)<\/link>/i);
+      if(m2 && m2[1]){
+        const link = m2[1].trim();
+        return {img:previewImage(link), link};
+      }
+    }catch(e){}
+    return {img:previewImage(searchUrl), link:null};
+  }
+
+  async function hydrateFrontPageImages(){
+    const tiles = Array.from(document.querySelectorAll(".story"));
+    await Promise.all(tiles.map(async (tile)=>{
+      const a = tile.querySelector("a");
+      const img = tile.querySelector("img");
+      if(!a || !img) return;
+      const url = a.getAttribute("href") || "";
+      if(img.dataset.hydrated === "1") return;
+      const res = await resolvePreviewFromGoogleNewsSearch(url);
+      img.src = res.img;
+      img.dataset.hydrated = "1";
+      if(res.link) a.href = res.link;
+    }));
+  }
+
+// --- Image resolver (no fetch, works from local file) ---
+  const _imgCache = new Map(); // key -> chosen url
+  function imgCandidates(tags, seed){
+    const t = (tags || "").toString().trim().replace(/\s+/g," ").replace(/,+/g,",").replace(/^,|,$/g,"");
+    const encTags = encodeURIComponent(t.replace(/ /g,","));
+    const encSeed = encodeURIComponent(seed);
+    return [
+      `https://loremflickr.com/900/900/${encTags}?lock=${encSeed}`,
+      `https://source.unsplash.com/900x900/?${encTags}`,
+      `https://picsum.photos/seed/${encSeed}/900`
+    ];
+  }
+  function resolveImg(key, tags, seed){
+    if (_imgCache.has(key)) return Promise.resolve(_imgCache.get(key));
+    return new Promise((resolve) => {
+      const cands = imgCandidates(tags, seed);
+      let i = 0;
+      const probe = () => {
+        const url = cands[i] || cands[cands.length-1];
+        const im = new Image();
+        im.referrerPolicy = "no-referrer";
+        im.onload = () => { _imgCache.set(key, url); resolve(url); };
+        im.onerror = () => { i++; probe(); };
+        im.src = url;
+      };
+      probe();
+    });
+  }
+
+  function setSmartImg(imgEl, key, tags, seed){
+    imgEl.loading = "lazy";
+    imgEl.decoding = "async";
+    imgEl.referrerPolicy = "no-referrer";
+    imgEl.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Crect width='900' height='900' fill='%23d9dde3'/%3E%3C/svg%3E";
+    resolveImg(key, tags, seed).then(url => { imgEl.src = url; });
+  }
+
+
+// ----- date + countdown -----
+// Midnight rollover is America/New_York (ET)
+function getNYParts(d=new Date()){
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone:'America/New_York',
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit',
+    hourCycle:'h23'
+  });
+  const parts = Object.fromEntries(fmt.formatToParts(d).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+  return parts;
+}
+function getNYDayKey(d=new Date()){
+  const p=getNYParts(d);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+function getNYOffsetMinutes(d=new Date()){
+  try{
+    const fmt = new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York', timeZoneName:'shortOffset'});
+    const tz = fmt.formatToParts(d).find(p=>p.type==='timeZoneName')?.value || '';
+    const m = tz.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
+    if(!m) return -300;
+    const sign = m[1]==='-' ? -1 : 1;
+    const hh = parseInt(m[2],10);
+    const mm = m[3] ? parseInt(m[3],10) : 0;
+    return sign*(hh*60+mm);
+  }catch(e){ return -300; }
+}
+function nyMidnightUTCms(forDate=new Date()){
+  const p=getNYParts(forDate);
+  const y=parseInt(p.year,10), mo=parseInt(p.month,10)-1, da=parseInt(p.day,10);
+  const offsetMin=getNYOffsetMinutes(forDate);
+  return Date.UTC(y,mo,da,0,0,0) - offsetMin*60000;
+}
+function nextNYMidnightUTCms(){
+  const now=new Date();
+  const todayMid = nyMidnightUTCms(now);
+  return todayMid + 24*60*60*1000;
+}
+
+const now = new Date();
+const dayKey = getNYDayKey(now);
+document.getElementById('puzzleId').textContent = "Puzzle " + dayKey;
+
+function nextMidnight(){
+  return new Date(nextNYMidnightUTCms());
+}
+function tick(){
+  const diff = nextMidnight() - new Date();
+  const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+  document.getElementById('timer').textContent = `Next puzzle in ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+setInterval(tick,1000); tick();
+
+// stable hash -> int
+// stable hash -> int
+function hashDate(key){
+  let h=5381;
+  for (let i=0;i<key.length;i++) h=((h<<5)+h)+key.charCodeAt(i);
+  return (h>>>0);
+}
+function makeRand(seed){
+  let s = seed>>>0;
+  return function(){
+    s = (1664525*s + 1013904223) >>> 0;
+    return s / 4294967296;
+  }
+}
+
+// ----- Images: use upload.wikimedia.org (direct) for best reliability -----
+function wikimediaUpload(path){ return "https://upload.wikimedia.org/wikipedia/commons/" + path; }
+const FALLBACK = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='%231F4E79'/><stop offset='1' stop-color='%232B6CB0'/></linearGradient></defs><rect width='800' height='800' fill='url(%23g)'/></svg>";
+
+// ----- Guessable cities (expanded) -----
+const CITIES=[
+  {name:"New York",lat:40.7128,lng:-74.0060},{name:"Los Angeles",lat:34.0522,lng:-118.2437},{name:"Chicago",lat:41.8781,lng:-87.6298},
+  {name:"Houston",lat:29.7604,lng:-95.3698},{name:"Phoenix",lat:33.4484,lng:-112.0740},{name:"Philadelphia",lat:39.9526,lng:-75.1652},
+  {name:"San Antonio",lat:29.4241,lng:-98.4936},{name:"San Diego",lat:32.7157,lng:-117.1611},{name:"Dallas",lat:32.7767,lng:-96.7970},
+  {name:"San Jose",lat:37.3382,lng:-121.8863},{name:"Austin",lat:30.2672,lng:-97.7431},{name:"Jacksonville",lat:30.3322,lng:-81.6557},
+  {name:"Fort Worth",lat:32.7555,lng:-97.3308},{name:"Columbus",lat:39.9612,lng:-82.9988},{name:"Charlotte",lat:35.2271,lng:-80.8431},
+  {name:"San Francisco",lat:37.7749,lng:-122.4194},{name:"Indianapolis",lat:39.7684,lng:-86.1581},{name:"Seattle",lat:47.6062,lng:-122.3321},
+  {name:"Denver",lat:39.7392,lng:-104.9903},{name:"Washington",lat:38.9072,lng:-77.0369},{name:"Boston",lat:42.3601,lng:-71.0589},
+  {name:"Nashville",lat:36.1627,lng:-86.7816},{name:"Detroit",lat:42.3314,lng:-83.0458},{name:"Portland",lat:45.5152,lng:-122.6784},
+  {name:"Las Vegas",lat:36.1699,lng:-115.1398},{name:"Baltimore",lat:39.2904,lng:-76.6122},{name:"Milwaukee",lat:43.0389,lng:-87.9065},
+  {name:"Sacramento",lat:38.5816,lng:-121.4944},{name:"Atlanta",lat:33.7490,lng:-84.3880},{name:"Kansas City",lat:39.0997,lng:-94.5786},
+  {name:"Miami",lat:25.7617,lng:-80.1918},{name:"Raleigh",lat:35.7796,lng:-78.6382},{name:"Minneapolis",lat:44.9778,lng:-93.2650},
+  {name:"New Orleans",lat:29.9511,lng:-90.0715},{name:"Cleveland",lat:41.4993,lng:-81.6944},{name:"Tampa",lat:27.9506,lng:-82.4572},
+  {name:"Orlando",lat:28.5383,lng:-81.3792},{name:"Pittsburgh",lat:40.4406,lng:-79.9959},{name:"Cincinnati",lat:39.1031,lng:-84.5120},
+  {name:"St. Louis",lat:38.6270,lng:-90.1994},{name:"Salt Lake City",lat:40.7608,lng:-111.8910},{name:"Honolulu",lat:21.3069,lng:-157.8583},
+  {name:"Richmond",lat:37.5407,lng:-77.4360},{name:"Buffalo",lat:42.8864,lng:-78.8784},
+  // Global majors
+  {name:"Toronto",lat:43.6532,lng:-79.3832},{name:"Vancouver",lat:49.2827,lng:-123.1207},{name:"Montreal",lat:45.5017,lng:-73.5673},
+  {name:"London",lat:51.5074,lng:-0.1278},{name:"Paris",lat:48.8566,lng:2.3522},{name:"Berlin",lat:52.52,lng:13.405},{name:"Rome",lat:41.9028,lng:12.4964},
+  {name:"Madrid",lat:40.4168,lng:-3.7038},{name:"Barcelona",lat:41.3874,lng:2.1686},{name:"Amsterdam",lat:52.3676,lng:4.9041},
+  {name:"Tokyo",lat:35.6762,lng:139.6503},{name:"Seoul",lat:37.5665,lng:126.9780},{name:"Singapore",lat:1.3521,lng:103.8198},
+  {name:"Hong Kong",lat:22.3193,lng:114.1694},{name:"Sydney",lat:-33.8688,lng:151.2093},{name:"Melbourne",lat:-37.8136,lng:144.9631},
+  {name:"Mexico City",lat:19.4326,lng:-99.1332},{name:"Sao Paulo",lat:-23.5558,lng:-46.6396},{name:"Buenos Aires",lat:-34.6037,lng:-58.3816}
+];
+
+// Autocomplete list (full city list)
+const dl = document.getElementById("citylist");
+if (dl){
+  CITIES.forEach(c=>{ const o=document.createElement("option"); o.value=c.name; dl.appendChild(o); });
+}
+
+// aliases to reduce "unknown city"
+const ALIASES = {
+  "dc":"Washington","d.c.":"Washington","washington dc":"Washington",
+  "sf":"San Francisco","san fran":"San Francisco","san fran.":"San Francisco",
+  "nyc":"New York","new york city":"New York",
+  "la":"Los Angeles","l.a.":"Los Angeles"
+};
+
+// ----- City packs (answer set) -----
+// Each pack includes 4 city-related cards + 4 city-related "front page" stories.
+// Images are direct upload.wikimedia.org paths (high reliability).
+const CITY_PACKS = [{
+    city:"Austin",
+    lat:30.2672,lng:-97.7431,
+    cards:[
+      {emoji:"🎸", clue:"Yesterday, the city’s soundtrack got louder — live Music Festival Or Venue Update."},
+{emoji:"🏛️", clue:"Yesterday, it was all anyone could talk about: state Legislature Vote Or Policy Move."},
+
+{emoji:"🌮", clue:"Yesterday, the front page practically screamed about restaurant Opening Or Food Scene Buzz."},
+
+{emoji:"🏎️", clue:"Yesterday, a fresh update dropped on cota Or Motorsport Event Update."}
+    ],
+    stories:[
+      {headline:"Live Music Festival Or Venue Update", source:"AP News", url:"https://apnews.com/"},
+      {headline:"State Legislature Vote Or Policy Move", source:"Reuters", url:"https://www.reuters.com/world/us/"},
+      {headline:"Restaurant Opening Or Food Scene Buzz", source:"CNN", url:"https://www.cnn.com/travel"},
+      {headline:"Cota Or Motorsport Event Update", source:"ESPN", url:"https://www.espn.com/f1/"}
+    ]
+  },
+
+{
+    city:"Boston",
+    lat:42.3601,lng:-71.0589,
+    cards:[
+      {emoji:"⚾️", clue:"Yesterday, sports radios lit up — red Sox Or Fenway Park."},
+
+{emoji:"🎓", clue:"Yesterday, it was all anyone could talk about: university Campus News Harvard Mit."},
+
+{emoji:"🚇", clue:"Yesterday, the front page practically screamed about mbta Service Disruption Or Upgrade."},
+
+{emoji:"🌧️", clue:"Yesterday, a fresh update dropped on winter Storm Or Flood Advisory."}
+    ],
+    stories:[
+      {headline:"Red Sox Or Fenway Park Headline", source:"Google News", url:"https://news.google.com/search?q=Boston%20Red%20Sox%20or%20Fenway%20Park%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"University Campus News Harvard Mit", source:"Google News", url:"https://news.google.com/search?q=Boston%20university%20campus%20news%20Harvard%20MIT%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Mbta Service Disruption Or Upgrade", source:"Google News", url:"https://news.google.com/search?q=Boston%20MBTA%20service%20disruption%20or%20upgrade%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Winter Storm Or Flood Advisory", source:"Google News", url:"https://news.google.com/search?q=Boston%20winter%20storm%20or%20flood%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"New York",
+    lat:40.7128,lng:-74.006,
+    cards:[
+      {emoji:"🗽", clue:"Yesterday, city hall news broke — mayor Or City Hall Announcement."},
+
+{emoji:"🚇", clue:"Yesterday, it was all anyone could talk about: subway Delay Or Service Change."},
+
+{emoji:"⚖️", clue:"Yesterday, the front page practically screamed about court Ruling Or Major Trial Update."},
+
+{emoji:"🎭", clue:"Yesterday, a fresh update dropped on broadway Opening Or Theater."}
+    ],
+    stories:[
+      {headline:"Mayor Or City Hall Announcement", source:"Google News", url:"https://news.google.com/search?q=New%20York%20City%20mayor%20or%20city%20hall%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Subway Delay Or Service Change", source:"Google News", url:"https://news.google.com/search?q=New%20York%20City%20subway%20delay%20or%20service%20change%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Court Ruling Or Major Trial Update", source:"Google News", url:"https://news.google.com/search?q=New%20York%20City%20court%20ruling%20or%20major%20trial%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Broadway Opening Or Theater Headline", source:"Google News", url:"https://news.google.com/search?q=New%20York%20City%20Broadway%20opening%20or%20theater%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Washington",
+    lat:38.9072,lng:-77.0369,
+    cards:[
+      {emoji:"🏛️", clue:"Yesterday, government headlines landed — congress Vote Or Hearing."},
+
+{emoji:"🕵️", clue:"Yesterday, it was all anyone could talk about: federal Agency Or Policy Announcement."},
+
+{emoji:"🚇", clue:"Yesterday, the front page practically screamed about metro Service Advisory."},
+
+{emoji:"🎟️", clue:"Yesterday, a fresh update dropped on museum Exhibit Or Major Event."}
+    ],
+    stories:[
+      {headline:"Congress Vote Or Hearing Headline", source:"Google News", url:"https://news.google.com/search?q=Washington%2C%20DC%20Congress%20vote%20or%20hearing%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Federal Agency Or Policy Announcement", source:"Google News", url:"https://news.google.com/search?q=Washington%2C%20DC%20federal%20agency%20or%20policy%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Metro Service Advisory", source:"Google News", url:"https://news.google.com/search?q=Washington%2C%20DC%20Metro%20service%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Museum Exhibit Or Major Event", source:"Google News", url:"https://news.google.com/search?q=Washington%2C%20DC%20museum%20exhibit%20or%20major%20event%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Miami",
+    lat:25.7617,lng:-80.1918,
+    cards:[
+      {emoji:"🌴", clue:"Yesterday, vacation mode got interrupted — beach Advisory Or Tourism."},
+
+{emoji:"🏀", clue:"Yesterday, it was all anyone could talk about: heat Game Or Trade Rumor."},
+
+{emoji:"🛥️", clue:"Yesterday, the front page practically screamed about port Or Cruise Terminal Update."},
+
+{emoji:"🌧️", clue:"Yesterday, a fresh update dropped on flood Watch Or Severe Weather."}
+    ],
+    stories:[
+      {headline:"Beach Advisory Or Tourism Headline", source:"Google News", url:"https://news.google.com/search?q=Miami%20beach%20advisory%20or%20tourism%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Heat Game Or Trade Rumor", source:"Google News", url:"https://news.google.com/search?q=Miami%20Heat%20game%20or%20trade%20rumor%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{
+    city:"Tokyo",
+    cards:[
+      {emoji:"🚄", clue:"Yesterday, rail commuters woke up to a major service change announcement."},
+      {emoji:"🎮", clue:"Yesterday, the tech beat buzzed about a surprise gaming launch."},
+      {emoji:"🌧️", clue:"Yesterday, weather alerts dominated the morning broadcasts."},
+      {emoji:"🍣", clue:"Yesterday, a culinary accolade reshaped the dining conversation."}
+    ],
+    stories:[
+      {headline:"High-speed rail timetable update affects commuters", source:"BBC", url:"https://www.bbc.com/news"},
+      {headline:"Major gaming company unveils new title and console features", source:"Reuters", url:"https://www.reuters.com/technology/"},
+      {headline:"Heavy rain warnings issued across metro area", source:"AP", url:"https://apnews.com/"},
+      {headline:"Restaurant earns top international dining honor", source:"CNN", url:"https://www.cnn.com/world"}
+    ]
+  },
+
+{headline:"Port Or Cruise Terminal Update", source:"Google News", url:"https://news.google.com/search?q=Miami%20port%20or%20cruise%20terminal%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Flood Watch Or Severe Weather", source:"Google News", url:"https://news.google.com/search?q=Miami%20flood%20watch%20or%20severe%20weather%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Chicago",
+    lat:41.8781,lng:-87.6298,
+    cards:[
+      {emoji:"🌬️", clue:"Yesterday, the forecast set the tone — wind Chill Or Weather Alert."},
+
+{emoji:"🚆", clue:"Yesterday, it was all anyone could talk about: cta Service Update."},
+
+{emoji:"🏀", clue:"Yesterday, the front page practically screamed about bulls."},
+
+{emoji:"🏙️", clue:"Yesterday, a fresh update dropped on downtown Development Or Housing Plan."}
+    ],
+    stories:[
+      {headline:"Wind Chill Or Weather Alert", source:"Google News", url:"https://news.google.com/search?q=Chicago%20wind%20chill%20or%20weather%20alert%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Cta Service Update", source:"Google News", url:"https://news.google.com/search?q=Chicago%20CTA%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Bulls Headline", source:"Google News", url:"https://news.google.com/search?q=Chicago%20Bulls%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Downtown Development Or Housing Plan", source:"Google News", url:"https://news.google.com/search?q=Chicago%20downtown%20development%20or%20housing%20plan%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Los Angeles",
+    lat:34.0522,lng:-118.2437,
+    cards:[
+      {emoji:"🎬", clue:"Yesterday, the entertainment desk was humming — studio Or Entertainment Industry."},
+
+{emoji:"🚗", clue:"Yesterday, it was all anyone could talk about: freeway Closure Or Traffic Change."},
+
+{emoji:"⚾️", clue:"Yesterday, the front page practically screamed about dodgers."},
+
+{emoji:"🌋", clue:"Yesterday, a fresh update dropped on earthquake Or Wildfire Update."}
+    ],
+    stories:[
+      {headline:"Studio Or Entertainment Industry Headline", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20studio%20or%20entertainment%20industry%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Freeway Closure Or Traffic Change", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20freeway%20closure%20or%20traffic%20change%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Dodgers Headline", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20Dodgers%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Earthquake Or Wildfire Update", source:"Google News", url:"https://news.google.com/search?q=Los%20Angeles%20earthquake%20or%20wildfire%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"San Francisco",
+    lat:37.7749,lng:-122.4194,
+    cards:[
+      {emoji:"💻", clue:"Yesterday, the tech beat moved fast — tech Company Or Ai Startup."},
+
+{emoji:"🚋", clue:"Yesterday, it was all anyone could talk about: muni/Bart Service Disruption."},
+
+{emoji:"🌫️", clue:"Yesterday, the front page practically screamed about bay Area Weather Advisory."},
+
+{emoji:"⚾️", clue:"Yesterday, a fresh update dropped on giants."}
+    ],
+    stories:[
+      {headline:"Tech Company Or Ai Startup Headline", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20tech%20company%20or%20AI%20startup%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Muni/Bart Service Disruption", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20Muni/BART%20service%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Bay Area Weather Advisory", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20Bay%20Area%20weather%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Giants Headline", source:"Google News", url:"https://news.google.com/search?q=San%20Francisco%20Giants%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Seattle",
+    lat:47.6062,lng:-122.3321,
+    cards:[
+      {emoji:"☕️", clue:"Yesterday, business chatter brewed — major Employer Or Coffee Brand."},
+
+{emoji:"🛫", clue:"Yesterday, it was all anyone could talk about: sea-Tac Travel Disruption."},
+
+{emoji:"🌧️", clue:"Yesterday, the front page practically screamed about storm Warning Or Flooding."},
+
+{emoji:"⚽️", clue:"Yesterday, a fresh update dropped on sounders."}
+    ],
+    stories:[
+      {headline:"Major Employer Or Coffee Brand Headline", source:"Google News", url:"https://news.google.com/search?q=Seattle%20major%20employer%20or%20coffee%20brand%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Sea-Tac Travel Disruption", source:"Google News", url:"https://news.google.com/search?q=Seattle%20Sea-Tac%20travel%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Storm Warning Or Flooding", source:"Google News", url:"https://news.google.com/search?q=Seattle%20storm%20warning%20or%20flooding%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Sounders Headline", source:"Google News", url:"https://news.google.com/search?q=Seattle%20Sounders%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Denver",
+    lat:39.7392,lng:-104.9903,
+    cards:[
+      {emoji:"🏔️", clue:"Yesterday, winter had opinions — snowstorm Or Mountain Travel Alert."},
+
+{emoji:"🏀", clue:"Yesterday, it was all anyone could talk about: nuggets."},
+
+{emoji:"✈️", clue:"Yesterday, the front page practically screamed about den Airport Delay Or Expansion."},
+
+{
+    city:"Paris",
+    cards:[
+      {emoji:"🚴", clue:"Yesterday, streets filled for a citywide mobility plan rollout."},
+      {emoji:"🎭", clue:"Yesterday, the culture desk spotlighted a major opening night."},
+      {emoji:"⚖️", clue:"Yesterday, a legal ruling made front pages across the country."},
+      {emoji:"☕️", clue:"Yesterday, café chatter turned to rising prices and crowds."}
+    ],
+    stories:[
+      {headline:"New cycling plan expands car‑free zones", source:"BBC", url:"https://www.bbc.com/news/world-europe"},
+      {headline:"Historic theater reopens with acclaimed performance", source:"Reuters", url:"https://www.reuters.com/lifestyle/"},
+      {headline:"Court decision sparks nationwide debate", source:"AP", url:"https://apnews.com/hub/europe"},
+      {headline:"Tourism surge boosts local businesses", source:"CNN", url:"https://www.cnn.com/europe"}
+    ]
+  },
+
+{emoji:"🚴", clue:"Yesterday, a fresh update dropped on bike Lane Or Transit Project."}
+    ],
+    stories:[
+      {headline:"Snowstorm Or Mountain Travel Alert", source:"Google News", url:"https://news.google.com/search?q=Denver%20snowstorm%20or%20mountain%20travel%20alert%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Nuggets Headline", source:"Google News", url:"https://news.google.com/search?q=Denver%20Nuggets%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Den Airport Delay Or Expansion", source:"Google News", url:"https://news.google.com/search?q=Denver%20DEN%20airport%20delay%20or%20expansion%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Bike Lane Or Transit Project", source:"Google News", url:"https://news.google.com/search?q=Denver%20bike%20lane%20or%20transit%20project%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Dallas",
+    lat:32.7767,lng:-96.797,
+    cards:[
+      {emoji:"🏈", clue:"Yesterday, the fanbase refreshed feeds — cowboys."},
+
+{emoji:"🏗️", clue:"Yesterday, it was all anyone could talk about: major Development Or Skyline Project."},
+
+{emoji:"🌪️", clue:"Yesterday, the front page practically screamed about severe Weather Watch."},
+
+{emoji:"🎤", clue:"Yesterday, a fresh update dropped on arena Show Or Concert Announcement."}
+    ],
+    stories:[
+      {headline:"Cowboys Headline", source:"Google News", url:"https://news.google.com/search?q=Dallas%20Cowboys%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Major Development Or Skyline Project", source:"Google News", url:"https://news.google.com/search?q=Dallas%20major%20development%20or%20skyline%20project%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Severe Weather Watch", source:"Google News", url:"https://news.google.com/search?q=Dallas%20severe%20weather%20watch%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Arena Show Or Concert Announcement", source:"Google News", url:"https://news.google.com/search?q=Dallas%20arena%20show%20or%20concert%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Houston",
+    lat:29.7604,lng:-95.3698,
+    cards:[
+      {emoji:"🚀", clue:"Yesterday, space news went local — nasa/Space."},
+
+{emoji:"🌀", clue:"Yesterday, it was all anyone could talk about: gulf Weather Advisory."},
+
+{emoji:"🏀", clue:"Yesterday, the front page practically screamed about rockets."},
+
+{emoji:"🛢️", clue:"Yesterday, a fresh update dropped on energy Sector Announcement."}
+    ],
+    stories:[
+      {headline:"Nasa/Space Headline", source:"Google News", url:"https://news.google.com/search?q=Houston%20NASA/space%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Gulf Weather Advisory", source:"Google News", url:"https://news.google.com/search?q=Houston%20Gulf%20weather%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Rockets Headline", source:"Google News", url:"https://news.google.com/search?q=Houston%20Rockets%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Energy Sector Announcement", source:"Google News", url:"https://news.google.com/search?q=Houston%20energy%20sector%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Phoenix",
+    lat:33.4484,lng:-112.074,
+    cards:[
+      {emoji:"☀️", clue:"Yesterday, heat headlines returned — heat Advisory Or Drought Update."},
+
+{emoji:"🏀", clue:"Yesterday, it was all anyone could talk about: suns."},
+
+{emoji:"🌵", clue:"Yesterday, the front page practically screamed about water Policy Update."},
+
+{emoji:"✈️", clue:"Yesterday, a fresh update dropped on airport Service Update."}
+    ],
+    stories:[
+      {headline:"Heat Advisory Or Drought Update", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20heat%20advisory%20or%20drought%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Suns Headline", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20Suns%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Water Policy Update", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20water%20policy%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Airport Service Update", source:"Google News", url:"https://news.google.com/search?q=Phoenix%20airport%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Las Vegas",
+    lat:36.1699,lng:-115.1398,
+    cards:[
+      {emoji:"🎰", clue:"Yesterday, the Strip had a storyline — strip Resort News."},
+
+{emoji:"🎤", clue:"Yesterday, it was all anyone could talk about: residency Or Big Show Announcement."},
+
+{emoji:"🏎️", clue:"Yesterday, the front page practically screamed about major Race Or Event Update."},
+
+{emoji:"🚧", clue:"Yesterday, a fresh update dropped on construction Closure On The Strip."}
+    ],
+    stories:[
+      {headline:"Strip Resort News", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20Strip%20resort%20news%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Residency Or Big Show Announcement", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20residency%20or%20big%20show%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Major Race Or Event Update", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20major%20race%20or%20event%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Construction Closure On The Strip", source:"Google News", url:"https://news.google.com/search?q=Las%20Vegas%20construction%20closure%20on%20the%20Strip%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Atlanta",
+    lat:33.749,lng:-84.388,
+    cards:[
+      {emoji:"✈️", clue:"Yesterday, gate changes became headlines — atl Airport Disruption."},
+
+{
+    city:"London",
+    cards:[
+      {emoji:"🚇", clue:"Yesterday, commuters faced a transit disruption story."},
+      {emoji:"🏛️", clue:"Yesterday, policy watchers tracked a key announcement."},
+      {emoji:"🎤", clue:"Yesterday, concertgoers lined up for a major event."},
+      {emoji:"🌧️", clue:"Yesterday, forecasts and umbrellas dominated coverage."}
+    ],
+    stories:[
+      {headline:"Underground service interruption affects morning travel", source:"BBC", url:"https://www.bbc.com/news/uk"},
+      {headline:"Government outlines new economic measures", source:"Reuters", url:"https://www.reuters.com/world/uk/"},
+      {headline:"Music festival draws record attendance", source:"AP", url:"https://apnews.com/entertainment"},
+      {headline:"Storm system brings heavy showers", source:"CNN", url:"https://www.cnn.com/uk"}
+    ]
+  },
+
+{emoji:"🏈", clue:"Yesterday, it was all anyone could talk about: falcons."},
+
+{emoji:"🎬", clue:"Yesterday, the front page practically screamed about georgia Film Industry News."},
+
+{emoji:"🚧", clue:"Yesterday, a fresh update dropped on major Highway Closure."}
+    ],
+    stories:[
+      {headline:"Atl Airport Disruption", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20ATL%20airport%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Falcons Headline", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20Falcons%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Georgia Film Industry News", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20Georgia%20film%20industry%20news%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Major Highway Closure", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20major%20highway%20closure%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Philadelphia",
+    lat:39.9526,lng:-75.1652,
+    cards:[
+      {emoji:"🔔", clue:"Yesterday, history met the news cycle — historic District."},
+
+{emoji:"🏒", clue:"Yesterday, it was all anyone could talk about: flyers."},
+
+{emoji:"🚇", clue:"Yesterday, the front page practically screamed about septa Service Update."},
+
+{emoji:"⚾️", clue:"Yesterday, a fresh update dropped on phillies."}
+    ],
+    stories:[
+      {headline:"Historic District Headline", source:"Google News", url:"https://news.google.com/search?q=Philadelphia%20historic%20district%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Flyers Headline", source:"Google News", url:"https://news.google.com/search?q=Philadelphia%20Flyers%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Septa Service Update", source:"Google News", url:"https://news.google.com/search?q=Philadelphia%20SEPTA%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Phillies Headline", source:"Google News", url:"https://news.google.com/search?q=Philadelphia%20Phillies%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Baltimore",
+    lat:39.2904,lng:-76.6122,
+    cards:[
+      {emoji:"⚓️", clue:"Yesterday, shipping news carried weight — port Of  Update."},
+
+{emoji:"🏈", clue:"Yesterday, it was all anyone could talk about: ravens."},
+
+{emoji:"🚧", clue:"Yesterday, the front page practically screamed about traffic Or Infrastructure Advisory."},
+
+{emoji:"🦀", clue:"Yesterday, a fresh update dropped on restaurant Or Harbor."}
+    ],
+    stories:[
+      {headline:"Port Of Baltimore Update", source:"Google News", url:"https://news.google.com/search?q=Baltimore%20Port%20of%20Baltimore%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Ravens Headline", source:"Google News", url:"https://news.google.com/search?q=Baltimore%20Ravens%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Traffic Or Infrastructure Advisory", source:"Google News", url:"https://news.google.com/search?q=Baltimore%20traffic%20or%20infrastructure%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Restaurant Or Harbor Headline", source:"Google News", url:"https://news.google.com/search?q=Baltimore%20restaurant%20or%20harbor%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"New Orleans",
+    lat:29.9511,lng:-90.0715,
+    cards:[
+      {emoji:"🎺", clue:"Yesterday, the party had a headline — festival Or Parade Update."},
+
+{emoji:"🏈", clue:"Yesterday, it was all anyone could talk about: saints."},
+
+{emoji:"🌀", clue:"Yesterday, the front page practically screamed about tropical Weather Watch."},
+
+{emoji:"🍽️", clue:"Yesterday, a fresh update dropped on restaurant Or Food Scene Spotlight."}
+    ],
+    stories:[
+      {headline:"Festival Or Parade Update", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20festival%20or%20parade%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Saints Headline", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20Saints%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Tropical Weather Watch", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20tropical%20weather%20watch%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Restaurant Or Food Scene Spotlight", source:"Google News", url:"https://news.google.com/search?q=New%20Orleans%20restaurant%20or%20food%20scene%20spotlight%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Nashville",
+    lat:36.1627,lng:-86.7816,
+    cards:[
+      {emoji:"🎶", clue:"Yesterday, the music beat moved — music Industry."},
+
+{emoji:"🏟️", clue:"Yesterday, it was all anyone could talk about: stadium Or Development Update."},
+
+{emoji:"🏒", clue:"Yesterday, the front page practically screamed about predators."},
+
+{emoji:"🌩️", clue:"Yesterday, a fresh update dropped on storm Advisory."}
+    ],
+    stories:[
+      {headline:"Music Industry Headline", source:"Google News", url:"https://news.google.com/search?q=Nashville%20music%20industry%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Stadium Or Development Update", source:"Google News", url:"https://news.google.com/search?q=Nashville%20stadium%20or%20development%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Predators Headline", source:"Google News", url:"https://news.google.com/search?q=Nashville%20Predators%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{
+    city:"Sydney",
+    cards:[
+      {emoji:"🌊", clue:"Yesterday, coastal conditions led the evening news."},
+      {emoji:"🏉", clue:"Yesterday, the sports page took over conversations."},
+      {emoji:"🏗️", clue:"Yesterday, skyline plans sparked debate."},
+      {emoji:"☀️", clue:"Yesterday, temperatures climbed into headlines."}
+    ],
+    stories:[
+      {headline:"Beach safety warnings issued after rough surf", source:"ABC", url:"https://www.abc.net.au/news/"},
+      {headline:"Big match victory energizes fans", source:"Reuters", url:"https://www.reuters.com/sports/"},
+      {headline:"Harbor development proposal unveiled", source:"BBC", url:"https://www.bbc.com/news/world-australia"},
+      {headline:"Heat advisory prompts public warnings", source:"AP", url:"https://apnews.com/hub/australia"}
+    ]
+  },
+
+{headline:"Storm Advisory", source:"Google News", url:"https://news.google.com/search?q=Nashville%20storm%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Minneapolis",
+    lat:44.9778,lng:-93.265,
+    cards:[
+      {emoji:"❄️", clue:"Yesterday, winter headlines returned — winter Storm Warning."},
+
+{emoji:"🏀", clue:"Yesterday, it was all anyone could talk about: timberwolves."},
+
+{emoji:"🏈", clue:"Yesterday, the front page practically screamed about vikings."},
+
+{emoji:"🚇", clue:"Yesterday, a fresh update dropped on transit Service Update."}
+    ],
+    stories:[
+      {headline:"Winter Storm Warning", source:"Google News", url:"https://news.google.com/search?q=Minneapolis%20winter%20storm%20warning%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Timberwolves Headline", source:"Google News", url:"https://news.google.com/search?q=Minneapolis%20Timberwolves%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Vikings Headline", source:"Google News", url:"https://news.google.com/search?q=Minneapolis%20Vikings%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Transit Service Update", source:"Google News", url:"https://news.google.com/search?q=Minneapolis%20transit%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Detroit",
+    lat:42.3314,lng:-83.0458,
+    cards:[
+      {emoji:"🚗", clue:"Yesterday, industry headlines hit — auto Industry Announcement."},
+
+{emoji:"🏒", clue:"Yesterday, it was all anyone could talk about: red Wings."},
+
+{emoji:"🏈", clue:"Yesterday, the front page practically screamed about lions."},
+
+{emoji:"🏗️", clue:"Yesterday, a fresh update dropped on downtown Redevelopment Plan."}
+    ],
+    stories:[
+      {headline:"Auto Industry Announcement", source:"Google News", url:"https://news.google.com/search?q=Detroit%20auto%20industry%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Red Wings Headline", source:"Google News", url:"https://news.google.com/search?q=Detroit%20Red%20Wings%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Lions Headline", source:"Google News", url:"https://news.google.com/search?q=Detroit%20Lions%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Downtown Redevelopment Plan", source:"Google News", url:"https://news.google.com/search?q=Detroit%20downtown%20redevelopment%20plan%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Charlotte",
+    lat:35.2271,lng:-80.8431,
+    cards:[
+      {emoji:"🏦", clue:"Yesterday, money news went local — banking Hq Business."},
+
+{emoji:"🏈", clue:"Yesterday, it was all anyone could talk about: panthers."},
+
+{emoji:"🏎️", clue:"Yesterday, the front page practically screamed about motorsport/Nascar Update."},
+
+{emoji:"🚧", clue:"Yesterday, a fresh update dropped on i-77 Closure Or Traffic."}
+    ],
+    stories:[
+      {headline:"Banking Hq Business Headline", source:"Google News", url:"https://news.google.com/search?q=Charlotte%20banking%20HQ%20business%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Panthers Headline", source:"Google News", url:"https://news.google.com/search?q=Charlotte%20Panthers%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Motorsport/Nascar Update", source:"Google News", url:"https://news.google.com/search?q=Charlotte%20motorsport/NASCAR%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"I-77 Closure Or Traffic", source:"Google News", url:"https://news.google.com/search?q=Charlotte%20I-77%20closure%20or%20traffic%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Toronto",
+    lat:43.6532,lng:-79.3832,
+    cards:[
+      {emoji:"🏒", clue:"Yesterday, the ice was in the news — maple Leafs."},
+
+{emoji:"🏙️", clue:"Yesterday, it was all anyone could talk about: city Council Decision."},
+
+{emoji:"🚇", clue:"Yesterday, the front page practically screamed about ttc Service Disruption."},
+
+{emoji:"🎤", clue:"Yesterday, a fresh update dropped on arena Show Announcement."}
+    ],
+    stories:[
+      {headline:"Maple Leafs Headline", source:"Google News", url:"https://news.google.com/search?q=Toronto%20Maple%20Leafs%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"City Council Decision", source:"Google News", url:"https://news.google.com/search?q=Toronto%20city%20council%20decision%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Ttc Service Disruption", source:"Google News", url:"https://news.google.com/search?q=Toronto%20TTC%20service%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Arena Show Announcement", source:"Google News", url:"https://news.google.com/search?q=Toronto%20arena%20show%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Vancouver",
+    lat:49.2827,lng:-123.1207,
+    cards:[
+      {emoji:"🌲", clue:"Yesterday, the outdoors had a story — housing Or City Policy."},
+
+{emoji:"🚆", clue:"Yesterday, it was all anyone could talk about: transit Update Skytrain."},
+
+{emoji:"🏒", clue:"Yesterday, the front page practically screamed about canucks."},
+
+{emoji:"🌧️", clue:"Yesterday, a fresh update dropped on storm Or Flood Advisory."}
+    ],
+    stories:[
+      {headline:"Housing Or City Policy Headline", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20housing%20or%20city%20policy%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{
+    city:"Toronto",
+    cards:[
+      {emoji:"🏒", clue:"Yesterday, the ice dominated talk radio."},
+      {emoji:"🏙️", clue:"Yesterday, housing news filled the front pages."},
+      {emoji:"🚧", clue:"Yesterday, commuters adjusted to a major closure."},
+      {emoji:"🎬", clue:"Yesterday, film chatter stole the spotlight."}
+    ],
+    stories:[
+      {headline:"Home team game result trends nationwide", source:"TSN", url:"https://www.tsn.ca/"},
+      {headline:"City announces new housing initiative", source:"CBC", url:"https://www.cbc.ca/news"},
+      {headline:"Highway maintenance disrupts traffic", source:"Global News", url:"https://globalnews.ca/"},
+      {headline:"Festival lineup reveals major premieres", source:"Variety", url:"https://variety.com/"}
+    ]
+  },
+
+{headline:"Transit Update Skytrain", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20transit%20update%20SkyTrain%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Canucks Headline", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20Canucks%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Storm Or Flood Advisory", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20storm%20or%20flood%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Mexico City",
+    lat:19.4326,lng:-99.1332,
+    cards:[
+      {emoji:"🏛️", clue:"Yesterday, government headlines landed — government Announcement."},
+
+{emoji:"🚇", clue:"Yesterday, it was all anyone could talk about: metro Line Update."},
+
+{emoji:"🌮", clue:"Yesterday, the front page practically screamed about food Festival."},
+
+{emoji:"⚽️", clue:"Yesterday, a fresh update dropped on club Match."}
+    ],
+    stories:[
+      {headline:"Government Announcement", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20government%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Metro Line Update", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20metro%20line%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Food Festival Headline", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20food%20festival%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Club Match Headline", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20club%20match%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"London",
+    lat:51.5072,lng:-0.1276,
+    cards:[
+      {emoji:"🚇", clue:"Yesterday, commuters got a curveball — tube Disruption."},
+
+{emoji:"⚽️", clue:"Yesterday, it was all anyone could talk about: premier League  Club."},
+
+{emoji:"🏛️", clue:"Yesterday, the front page practically screamed about parliament Vote."},
+
+{emoji:"🎭", clue:"Yesterday, a fresh update dropped on west End Opening."}
+    ],
+    stories:[
+      {headline:"Tube Disruption", source:"Google News", url:"https://news.google.com/search?q=London%20Tube%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Premier League London Club Headline", source:"Google News", url:"https://news.google.com/search?q=London%20Premier%20League%20London%20club%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Parliament Vote Headline", source:"Google News", url:"https://news.google.com/search?q=London%20Parliament%20vote%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"West End Opening", source:"Google News", url:"https://news.google.com/search?q=London%20West%20End%20opening%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Paris",
+    lat:48.8566,lng:2.3522,
+    cards:[
+      {emoji:"🗼", clue:"Yesterday, a landmark grabbed attention — landmark Area."},
+
+{emoji:"🚇", clue:"Yesterday, it was all anyone could talk about: metro Strike Or Disruption."},
+
+{emoji:"⚽️", clue:"Yesterday, the front page practically screamed about psg."},
+
+{emoji:"🎨", clue:"Yesterday, a fresh update dropped on museum Exhibit Opening."}
+    ],
+    stories:[
+      {headline:"Landmark Area Headline", source:"Google News", url:"https://news.google.com/search?q=Paris%20landmark%20area%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Metro Strike Or Disruption", source:"Google News", url:"https://news.google.com/search?q=Paris%20Metro%20strike%20or%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Psg Headline", source:"Google News", url:"https://news.google.com/search?q=Paris%20PSG%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Museum Exhibit Opening", source:"Google News", url:"https://news.google.com/search?q=Paris%20museum%20exhibit%20opening%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Tokyo",
+    lat:35.6762,lng:139.6503,
+    cards:[
+      {emoji:"🚄", clue:"Yesterday, rail updates rippled — rail Service Update."},
+
+{emoji:"🏯", clue:"Yesterday, it was all anyone could talk about: policy Announcement."},
+
+{emoji:"🎮", clue:"Yesterday, the front page practically screamed about gaming Industry."},
+
+{emoji:"🍣", clue:"Yesterday, a fresh update dropped on food Trend."}
+    ],
+    stories:[
+      {headline:"Rail Service Update", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20rail%20service%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Policy Announcement", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20policy%20announcement%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Gaming Industry Headline", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20gaming%20industry%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Food Trend Headline", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20food%20trend%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+
+{
+    city:"Sydney",
+    lat:-33.8688,lng:151.2093,
+    cards:[
+      {emoji:"🏄", clue:"Yesterday, safety notices spread — beach Safety Advisory."},
+
+{emoji:"🎆", clue:"Yesterday, it was all anyone could talk about: harbour Event Update."},
+
+{emoji:"🏉", clue:"Yesterday, the front page practically screamed about match."},
+
+{emoji:"🌧️", clue:"Yesterday, a fresh update dropped on storm Warning."}
+    ],
+    stories:[
+      {headline:"Beach Safety Advisory", source:"Google News", url:"https://news.google.com/search?q=Sydney%20beach%20safety%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Harbour Event Update", source:"Google News", url:"https://news.google.com/search?q=Sydney%20harbour%20event%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Match Headline", source:"Google News", url:"https://news.google.com/search?q=Sydney%20match%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Storm Warning", source:"Google News", url:"https://news.google.com/search?q=Sydney%20storm%20warning%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  }
+];
+// ----- Build today's puzzle: choose a city pack deterministically & ensure different from yesterday -----
+function ymdOffset(key, deltaDays){
+  const d = new Date(key+"T00:00:00Z");
+  d.setUTCDate(d.getUTCDate()+deltaDays);
+  return d.toISOString().slice(0,10);
+}
+function pickPack(key){
+  const r = makeRand(hashDate(key) ^ 0xBEEFCAFE);
+  return Math.floor(r()*CITY_PACKS.length);
+}
+let packIndex = pickPack(dayKey);
+// rotate to a new city today (testing)
+const yIndex = pickPack(ymdOffset(dayKey,-1));
+if (packIndex === yIndex) packIndex = (packIndex + 1) % CITY_PACKS.length;
+
+const PACK = CITY_PACKS[packIndex];
+const answer = {name:PACK.city, lat:PACK.lat, lng:PACK.lng};
+const chosenCards = PACK.cards;
+const chosenStories = PACK.stories;
+
+// ----- render clue cards -----
+const grid=document.getElementById("grid");
+chosenCards.forEach((c,i)=>{
+  const d=document.createElement("div");
+  d.className="flip";
+  d.innerHTML = `
+    <div class="flipInner">
+      <div class="face front">
+        <div class="emojiFront">${c.emoji || "🗞️"}</div>
+        <div class="veil"></div>
+        <div class="tag">Headline ${i+1}</div>
+      </div>
+      <div class="face back"><p>${c.clue}</p></div>
+    </div>`;
+  d.onclick=()=>d.dataset.flipped=d.dataset.flipped==="true"?"false":"true";
+  grid.appendChild(d);
+});
+
+// ----- gameplay -----
+function toRad(d){return d*Math.PI/180;}
+function miles(a,b,c,d){
+  const R=3958.8;
+  const dLat=toRad(c-a), dLon=toRad(d-b);
+  const q=Math.sin(dLat/2)**2 + Math.cos(toRad(a))*Math.cos(toRad(c))*Math.sin(dLon/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q)));
+}
+
+let guesses=[]; const MAX=5;
+const count=document.getElementById("count");
+const feedback=document.getElementById("feedback");
+const error=document.getElementById("error");
+function updateCount(){count.textContent=guesses.length+"/"+MAX+" guesses";}
+
+function normalizeGuess(raw){
+  let s=(raw||"").trim().toLowerCase();
+  s=s.replace(/\./g,"");
+  if(ALIASES[s]) return ALIASES[s].toLowerCase();
+  return s;
+}
+
+function findCity(q){
+  const s=normalizeGuess(q);
+  if(!s) return null;
+  return CITIES.find(c=>c.name.toLowerCase()===s) || CITIES.find(c=>c.name.toLowerCase().startsWith(s)) || null;
+}
+
+document.getElementById("submitBtn").onclick=submitGuess;
+document.getElementById("guessInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") submitGuess(); });
+document.getElementById("revealBtn").onclick=()=>finish(false);
+
+function submitGuess(){
+  error.style.display="none";
+  if(guesses.length>=MAX) return;
+
+  const val=document.getElementById("guessInput").value;
+  const found=findCity(val);
+  if(!found){ error.style.display="block"; return; }
+
+  const d=miles(found.lat,found.lng,answer.lat,answer.lng);
+  guesses.push(d);
+  feedback.style.display="block";
+  feedback.textContent = found.name+" is "+d+" miles away.";
+  updateCount();
+
+  if(found.name===answer.name || guesses.length>=MAX) finish(found.name===answer.name);
+  document.getElementById("guessInput").value="";
+}
+
+function heat(m){ if(m===0) return "🟦"; if(m<250) return "🟩"; if(m<900) return "🟨"; if(m<2000) return "🟧"; return "⬛"; }
+
+// ----- stats (compact) -----
+function getStats(){
+  return JSON.parse(localStorage.getItem("y_stats")||'{"played":0,"wins":0,"cur":0,"max":0,"lastWin":""}');
+}
+function saveStats(s){ localStorage.setItem("y_stats",JSON.stringify(s)); }
+
+function finish(win){
+  if(document.getElementById("modal").style.display==="flex") return;
+
+  const s=getStats();
+  const key = "y_done_"+dayKey;
+  const alreadyDone = localStorage.getItem(key)==="1";
+  if(!alreadyDone){
+    s.played++;
+    if(win){
+      s.wins++;
+      const last = s.lastWin ? new Date(s.lastWin) : null;
+      const diff = last ? (new Date(dayKey)-last)/86400000 : 999;
+      s.cur = (diff===1) ? (s.cur+1) : 1;
+      s.max = Math.max(s.max, s.cur);
+      s.lastWin = dayKey;
+    }else{
+      s.cur=0;
+    }
+    saveStats(s);
+    localStorage.setItem(key,"1");
+  }
+
+  const storyEmojis = chosenCards.map(c=>c.emoji).join("");
+  const boxes = guesses.map(heat).join("");
+  const resultsNoUrl = `YESTERDAY  ${dayKey}
+${storyEmojis}
+${boxes}
+${win ? `I got Yesterday in ${guesses.length}/${MAX}` : `I gave up on Yesterday`}`;
+  const resultsWithUrl = resultsNoUrl + `
+https://dcmetrocentric.github.io/yesterday/`;
+
+  document.getElementById("modal").style.display="flex";
+  document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
+  document.getElementById("answerLine").textContent = "Answer: " + answer.name;
+
+  const winPct = s.played ? Math.round((s.wins/s.played)*100) : 0;
+  document.getElementById("miniStats").textContent = `Streak ${s.cur||0} • Max ${s.max||0} • Played ${s.played} • Win ${winPct}%`;
+  document.getElementById("shareBox").textContent = resultsNoUrl;
+  window.__yShareNoUrl = resultsNoUrl;
+  window.__yShareWithUrl = resultsWithUrl;
+
+  // render stories (titles only)
+  const stories=document.getElementById("stories");
+  stories.innerHTML="";
+  chosenStories.forEach((st)=>{
+    const el=document.createElement("div");
+    el.className="fpItem";
+    el.innerHTML = `<a href="${st.url}" target="_self" rel="noopener noreferrer">
+        <div class="fpTitle">${st.headline}</div>
+        <div class="fpSource">${st.source}</div>
+      </a>`;
+    stories.appendChild(el);
+  });
+}
+
+// share -> native share sheet or SMS compose
+document.getElementById("shareBtn").onclick=async()=>{
+  const resultsText = window.__yShareNoUrl || document.getElementById("shareBox").textContent;
+  const smsText = window.__yShareWithUrl || (resultsText + "\nhttps://dcmetrocentric.github.io/yesterday/");
+if(navigator.share){ try{ await navigator.share({ title:"Yesterday", text: resultsText, url: "https://dcmetrocentric.github.io/yesterday/" }); return; }catch(e){} }
+  window.location.href="sms:?&body="+encodeURIComponent(smsText);
+};
+
+updateCount();
+</script>
+
+<script>
+(function(){
+  function formatEdition(d){
+    const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+    return days[d.getDay()]+" Edition • "+months[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
+  }
+  function setEdition(){
+    let d;
+    if(typeof dayKey!=="undefined" && /^\d{4}-\d{2}-\d{2}$/.test(dayKey)){
+      const parts=dayKey.split("-").map(Number);
+      d=new Date(parts[0],parts[1]-1,parts[2]);
+    } else {
+      d=new Date();
+    }
+    const el=document.getElementById("editionLine");
+    if(el){ el.textContent=formatEdition(d); }
+  }
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",setEdition);
+  } else setEdition();
+})();
+</script>
+
+
+<canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+<script>
+(function(){
+  const canvas = document.getElementById('confettiCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  function resize(){
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+  function burst(durationMs=1200){
+    const start = performance.now();
+    const pieces = [];
+    const colors = ["#2B6CB0","#A0AEC0","#F6AD55","#48BB78","#ED64A6","#ECC94B"];
+    const count = 140;
+    for(let i=0;i<count;i++){
+      pieces.push({
+        x: rand(window.innerWidth*0.2, window.innerWidth*0.8),
+        y: rand(-60, -10),
+        vx: rand(-2.2,2.2),
+        vy: rand(2.6,6.2),
+        w: rand(6,12),
+        h: rand(6,16),
+        rot: rand(0,Math.PI*2),
+        vr: rand(-0.25,0.25),
+        c: colors[(Math.random()*colors.length)|0],
+        a: 1
+      });
+    }
+    function frame(now){
+      const t = now - start;
+      ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+      for(const p of pieces){
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.045;
+        p.rot += p.vr;
+        if(t > durationMs*0.65) p.a = Math.max(0, 1 - (t - durationMs*0.65)/(durationMs*0.35));
+        ctx.save();
+        ctx.globalAlpha = p.a;
+        ctx.translate(p.x,p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.c;
+        ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        ctx.restore();
+      }
+      if(t < durationMs) requestAnimationFrame(frame);
+      else ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+    }
+    requestAnimationFrame(frame);
+  }
+  window.__confettiBurst = burst;
+})();
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const box=document.getElementById('shareBox');
+  const btn=document.getElementById('shareBtn');
+  if(box&&btn){
+    const wrap=document.createElement('div');
+    wrap.className='shareWrap';
+    const parent=box.parentElement;
+    parent.insertBefore(wrap, box);
+    wrap.appendChild(box);
+    wrap.appendChild(btn);
+    btn.classList.add('shareBtnPrimary');
+    const hint=document.createElement('div');
+    hint.className='shareHint';
+    hint.textContent='Tap Share to send this result';
+    parent.appendChild(hint);
+  }
+});
+</script>
+
+
+<script>
+// Rewrite Google News links to direct publisher URLs when possible
+document.addEventListener('DOMContentLoaded', function(){
+  const anchors = document.querySelectorAll('.frontpage a[href*="news.google"], a[href*="google.com/news"], a[href*="news.google.com"]');
+  anchors.forEach(a=>{
+    try{
+      const u = new URL(a.href);
+      // common patterns: ?url=ENCODED or &url=ENCODED or ?q=...&url=ENCODED
+      let direct = u.searchParams.get('url') || u.searchParams.get('u');
+      if(!direct){
+        // sometimes inside 'q' parameter
+        const q = u.searchParams.get('q');
+        if(q && q.includes('url=')){
+          const m = q.match(/url=([^&]+)/);
+          if(m) direct = decodeURIComponent(m[1]);
+        }
+      }
+      if(direct){
+        a.href = decodeURIComponent(direct);
+        a
+        a.target = "_blank";
+      }
+    }catch(e){}
+  });
+});
+</script>
+
+
+
+<script>
+// Countdown in Solved modal footer (independent of header)
+
+function tzOffsetMinutes(tz, date){
+  // returns offset minutes such that local = utc + offset
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' });
+  const parts = fmt.formatToParts(date);
+  const tzName = (parts.find(p=>p.type==='timeZoneName')||{}).value || 'GMT';
+  // Examples: "GMT-5", "GMT-05:00", "GMT+1"
+  const m = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
+  if(!m) return 0;
+  const sign = m[1] === '-' ? -1 : 1;
+  const hh = parseInt(m[2],10);
+  const mm = m[3] ? parseInt(m[3],10) : 0;
+  return sign * (hh*60 + mm);
+}
+
+function msUntilMidnightET(){
+  const tz = 'America/New_York';
+  const now = new Date();
+
+  // Get today's date in NY
+  const p = new Intl.DateTimeFormat('en-US', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit' })
+    .formatToParts(now).reduce((a,x)=>{a[x.type]=x.value; return a;}, {});
+  const y = parseInt(p.year,10);
+  const m = parseInt(p.month,10);
+  const d = parseInt(p.day,10);
+
+  // Target: next day's midnight in NY (00:00:00)
+  // Start with a UTC guess for that wall-clock time, then iteratively adjust using timezone offset.
+  let utcGuess = new Date(Date.UTC(y, m-1, d+1, 0, 0, 0));
+  for(let i=0;i<3;i++){
+    const offMin = tzOffsetMinutes(tz, utcGuess);
+    const correctedMs = Date.UTC(y, m-1, d+1, 0, 0, 0) - offMin*60*1000;
+    utcGuess = new Date(correctedMs);
+  }
+
+  return Math.max(0, utcGuess.getTime() - now.getTime());
+}
+
+function fmtCountdown(ms){
+  const total = Math.max(0, Math.floor(ms/1000));
+  const h = String(Math.floor(total/3600)).padStart(2,'0');
+  const m = String(Math.floor((total%3600)/60)).padStart(2,'0');
+  const s = String(total%60).padStart(2,'0');
+  return `Next: ${h}:${m}:${s}`;
+}
+function syncModalCountdown(){
+  const el = document.getElementById('modalCountdown');
+  if(!el) return;
+  el.textContent = fmtCountdown(msUntilMidnightET());
+}
+setInterval(syncModalCountdown, 1000);
+document.addEventListener('DOMContentLoaded', syncModalCountdown);
+</script>
+
+
+
+<script>
+function msUntilMidnightET(){
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-US',{
+    timeZone:'America/New_York',
+    year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',
+    hour12:false
+  }).formatToParts(now).reduce((a,p)=>{a[p.type]=p.value;return a;},{});
+  const y=+parts.year,m=+parts.month,d=+parts.day;
+  const guessUTC = new Date(Date.UTC(y,m-1,d,0,0,0));
+  const p2 = new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})
+    .formatToParts(guessUTC).reduce((a,p)=>{a[p.type]=p.value;return a;},{});
+  const adj = (+p2.hour)*3600+(+p2.minute)*60+(+p2.second);
+  const nyMidnightUTC = new Date(guessUTC.getTime()-adj*1000);
+  const next = new Date(nyMidnightUTC.getTime()+24*3600*1000);
+  return Math.max(0,next.getTime()-Date.now());
+}
+function fmt(ms){
+  const t=Math.floor(ms/1000);
+  const h=String(Math.floor(t/3600)).padStart(2,'0');
+  const m=String(Math.floor((t%3600)/60)).padStart(2,'0');
+  const s=String(t%60).padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+function updateModalCountdown(){
+  const el=document.getElementById('modalCountdown');
+  if(!el) return;
+  el.textContent = fmt(msUntilMidnightET());
+}
+setInterval(updateModalCountdown, 1000);
+document.addEventListener('DOMContentLoaded', updateModalCountdown);
+</script>
+
+
+<script>
+// Reliable countdown to next midnight in America/New_York (modal)
+(function(){
+  function msUntilMidnightET(){
+    const now = new Date();
+    // NY wall-clock time interpreted in local timezone
+    const nyNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const nextNyMidnight = new Date(nyNow.getFullYear(), nyNow.getMonth(), nyNow.getDate()+1, 0, 0, 0);
+    return Math.max(0, nextNyMidnight.getTime() - now.getTime());
+  }
+  function fmt(ms){
+    const t=Math.floor(ms/1000);
+    const h=String(Math.floor(t/3600)).padStart(2,'0');
+    const m=String(Math.floor((t%3600)/60)).padStart(2,'0');
+    const s=String(t%60).padStart(2,'0');
+    return `${h}:${m}:${s}`;
+  }
+  function tick(){
+    const el = document.getElementById('modalCountdown');
+    if(!el) return;
+    el.textContent = fmt(msUntilMidnightET());
+  }
+  setInterval(tick, 1000);
+  document.addEventListener('DOMContentLoaded', tick);
+  // also update whenever modal opens (Solve / Give up)
+  document.addEventListener('click', ()=>setTimeout(tick, 50));
+})();
+</script>
+
+</body>
+</html>
