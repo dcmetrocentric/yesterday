@@ -596,6 +596,33 @@ html, body { overflow-x: hidden; }
   color: rgba(15,23,42,.78);
 }
 
+
+/* --- Guess row spacing + input width + reveal link wrap --- */
+.guessRow{
+  align-items: center;
+  gap: 12px !important;
+}
+#guessInput{
+  width: 100% !important;
+  max-width: 520px;          /* desktop */
+}
+@media (max-width: 520px){
+  #guessInput{ max-width: none; }
+}
+#guessBtn, #submitBtn{
+  margin-left: 2px;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+#revealLink, .revealLink{
+  display: inline-block;
+  text-align: center;
+  line-height: 1.05;
+}
+#revealLink span, .revealLink span{
+  display:block;
+}
+
 </style>
 </head>
 <body>
@@ -626,7 +653,7 @@ html, body { overflow-x: hidden; }
           <datalist id="citylist"></datalist>
         </div>
         <button id="submitBtn">Guess</button>
-        <button class="revealLink" class="ghost" id="revealBtn">Give up / Reveal Answer</button>
+        <button class="revealLink" class="ghost" id="revealBtn">Give up/<span>Reveal Answer</span></button>
       </div>
       <div class="count" id="count">0/5 guesses</div>
       <div class="error" id="error">Unknown city. Try a major city (e.g., Boston, Los Angeles).</div>
