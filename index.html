@@ -694,7 +694,413 @@ html, body { overflow-x: hidden; }
 }
 #modalCountdownInline .prefix{ margin-right:6px; }
 
+
+
+/* =========================================================
+   Midnight Newsroom Theme (Day-of-Week Edition)
+   Drop-in overrides to make the UI iconic + dark/premium.
+   ========================================================= */
+:root{
+  --bg-0:#0b1323;
+  --bg-1:#0f1b2d;
+  --panel: rgba(16, 28, 49, 0.72);
+  --panel-border: rgba(255,255,255,0.10);
+
+  --card-bg: rgba(31, 54, 84, 0.45);
+  --card-border: rgba(255,255,255,0.12);
+
+  --text:#e6eef7;
+  --muted2: rgba(230,238,247,0.72);
+
+  --cyan:#58c4ff;
+  --gold:#f2c94c;
+
+  --shadow: 0 18px 45px rgba(0,0,0,0.45);
+  --radius: 22px; /* keep your existing variable name */
+}
+
+/* Page background */
+body{
+  font-family: Georgia, "Times New Roman", Times, ui-serif, serif !important;
+  color: var(--text) !important;
+  background:
+    radial-gradient(900px 500px at 50% 12%, rgba(88,196,255,0.18), transparent 55%),
+    radial-gradient(900px 700px at 50% 110%, rgba(242,201,76,0.10), transparent 60%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0)) !important;
+}
+
+/* Optional subtle grain */
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.10;
+  background-image:
+    repeating-radial-gradient(circle at 20% 30%, rgba(255,255,255,0.06) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+}
+
+/* Masthead / header */
+.topbar{
+  background: var(--panel) !important;
+  border: 1px solid var(--panel-border) !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: blur(10px);
+}
+
+.brand{
+  font-family: "Cinzel", Georgia, "Times New Roman", Times, serif !important;
+  letter-spacing: 0.08em !important;
+  font-weight: 800 !important;
+  font-size: 44px !important;
+  color: var(--text) !important;
+}
+
+.mastheadRule{
+  background: linear-gradient(90deg, transparent, rgba(88,196,255,0.55), transparent) !important;
+  height: 2px !important;
+  opacity: 1 !important;
+}
+
+.tagline{
+  color: var(--muted2) !important;
+  font-weight: 650 !important;
+}
+
+.sub{
+  color: var(--muted2) !important;
+  font-weight: 650 !important;
+}
+
+/* Edition line stays Day-of-Week; just restyle */
+.editionLine{
+  color: rgba(230,238,247,0.85) !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  font-weight: 750 !important;
+}
+
+/* Hide puzzle id (keep clean) */
+#puzzleId, .puzzleId{ display:none !important; }
+
+/* Main card container */
+.card{
+  background: rgba(16,28,49,0.55) !important;
+  border: 1px solid var(--panel-border) !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: blur(10px);
+}
+
+.grid{ padding: 14px !important; gap: 14px !important; }
+
+.face{
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+}
+
+/* Front overlay */
+.front .veil{
+  background: radial-gradient(500px 220px at 50% 0%, rgba(88,196,255,0.18), transparent 60%),
+              linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.52)) !important;
+}
+
+/* "Headline" chip (formerly Clue pill) */
+.front .tag{
+  background: rgba(15,27,45,0.62) !important;
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(230,238,247,0.95) !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 11px !important;
+  padding: 8px 10px !important;
+}
+
+/* Back clue text */
+.back p{
+  color: rgba(230,238,247,0.92) !important;
+  font-weight: 650 !important;
+}
+.back{
+  background:
+    radial-gradient(500px 220px at 50% 0%, rgba(88,196,255,0.10), transparent 60%),
+    rgba(31,54,84,0.35) !important;
+}
+
+/* Guess panel */
+.play{
+  background: rgba(16,28,49,0.55) !important;
+  border-top: 1px solid rgba(255,255,255,0.10) !important;
+}
+
+.play h2{
+  color: rgba(230,238,247,0.90) !important;
+  letter-spacing: 0.16em !important;
+  font-weight: 750 !important;
+}
+
+.inputWrap{
+  background: rgba(11,19,35,0.55) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+}
+
+#guessInput{
+  background: transparent !important;
+  color: var(--text) !important;
+  font-size: 16px !important; /* prevents iOS zoom */
+}
+
+#guessInput::placeholder{ color: rgba(230,238,247,0.55); }
+
+#guessInput:focus{
+  outline: none;
+}
+
+/* Guess button = gold signature */
+#submitBtn{
+  background: linear-gradient(180deg, rgba(242,201,76,0.95), rgba(194,150,38,0.95)) !important;
+  color: #1b1b1b !important;
+  border: 1px solid rgba(0,0,0,0.25) !important;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+
+#submitBtn:active{ transform: translateY(1px); }
+
+/* Reveal link */
+.revealLink{
+  color: rgba(88,196,255,0.95) !important;
+  text-decoration: underline !important;
+}
+
+/* Guess count + errors */
+.count{ color: rgba(230,238,247,0.70) !important; }
+.error{ color: rgba(255,180,180,0.95) !important; }
+
+/* Modal */
+.modal .box{
+  background: rgba(16,28,49,0.88) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow: var(--shadow) !important;
+  color: var(--text) !important;
+}
+
+.shareMini{
+  background: rgba(11,19,35,0.55) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: rgba(230,238,247,0.92) !important;
+}
+
+.paper{
+  background: rgba(11,19,35,0.35) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+}
+
+.paperHead{
+  background: rgba(11,19,35,0.55) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.10) !important;
+}
+
+.paperHead b{ color: rgba(230,238,247,0.90) !important; }
+.paperHead span{ color: rgba(242,201,76,0.90) !important; }
+
+.story{
+  background: rgba(31,54,84,0.35) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+}
+
+.storyMeta{ color: rgba(230,238,247,0.70) !important; }
+
+#shareBtn{
+  background: linear-gradient(180deg, rgba(88,196,255,0.95), rgba(47,92,255,0.90)) !important;
+  border: 1px solid rgba(0,0,0,0.20) !important;
+}
+
+/* Mobile sizing */
+@media (max-width:520px){
+  .brand{ font-size: 40px !important; }
+  .grid{ gap: 12px !important; padding: 12px !important; }
+}
+
+
+/* =========================
+   Midnight Newsroom — Solved Front Page Overrides (v2)
+   ========================= */
+.frontpage, .frontPage, .front-paper, .paper, .newspaper, .front{
+  background: rgba(16,28,49,0.62) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  color: var(--text, #e6eef7) !important;
+  border-radius: var(--radius-lg, 26px) !important;
+  box-shadow: var(--shadow, 0 18px 45px rgba(0,0,0,0.45)) !important;
+  backdrop-filter: blur(10px);
+}
+
+.fp-grid, .front-grid, .storiesGrid, .stories-grid{
+  background: transparent !important;
+}
+
+.story{
+  position: relative;
+  background: rgba(31, 54, 84, 0.45) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #e6eef7 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35) !important;
+  backdrop-filter: blur(6px);
+}
+
+.story::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: radial-gradient(500px 180px at 50% 0%, rgba(88,196,255,0.14), transparent 70%);
+  pointer-events:none;
+}
+
+.storyBody{ position: relative; z-index: 1; }
+
+.storyTitle{
+  color: #f2f6ff !important;
+}
+
+.storyMeta, .storyKicker, .storyDeck, .storySrc{
+  color: rgba(230,238,247,0.78) !important;
+}
+
+.story a{ color: rgba(88,196,255,0.95) !important; }
+.story a:visited{ color: rgba(88,196,255,0.85) !important; }
+
+.storyImg{ background: rgba(11,19,35,0.55) !important; }
+
+#shareBox{
+  background: rgba(11,19,35,0.55) !important;
+  color: #e6eef7 !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+}
+
 </style>
+
+<style id="midnight-solved-overrides">
+/* ===== Solved / Headlines modal dark theme ===== */
+:root{
+  --text:#e6eef7;
+}
+.modal{ background: rgba(11,19,35,0.65); }
+.modal .box{
+  background: rgba(16,28,49,0.92);
+  border:1px solid rgba(255,255,255,0.12);
+  color: var(--text);
+  backdrop-filter: blur(10px);
+}
+.modalTop h3{ color: var(--text); }
+.miniStats{ color: rgba(230,238,247,0.85); }
+
+.shareMini{
+  background: rgba(11,19,35,0.6);
+  border:1px solid rgba(255,255,255,0.12);
+  color: var(--text);
+}
+
+.paper{ border:1px solid rgba(255,255,255,0.12); background: transparent; }
+.paperHead{
+  background: rgba(15,27,45,0.6);
+  border-bottom:1px solid rgba(255,255,255,0.12);
+}
+.paperHead b{ color: rgba(242,201,76,0.95); }
+.paperHead span{ color: rgba(230,238,247,0.75); }
+
+.stories{ background: transparent; }
+.story{
+  background: rgba(31,54,84,0.45);
+  border:1px solid rgba(255,255,255,0.12);
+}
+.storyTitle{ color: var(--text); }
+.storyMeta{ color: rgba(230,238,247,0.7); }
+.story a{ color: inherit; }
+
+.modalBtns button{ background: linear-gradient(180deg, rgba(242,201,76,0.95), rgba(194,150,38,0.95)); color:#1b1b1b; border-color: rgba(0,0,0,0.25); }
+</style>
+
+
+
+<style id="final-dark-fixes">
+/* =====================================================
+   FINAL DARK FIXES — Distance Box + Solved Headlines
+   ===================================================== */
+
+/* ---------- DISTANCE / FEEDBACK BOX ---------- */
+#feedback,
+.panel{
+  background: rgba(31,54,84,0.45) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #e6eef7 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+}
+
+/* distance text */
+#feedback b,
+#feedback strong{
+  color:#f2c94c !important;   /* gold highlight */
+}
+
+/* ---------- SOLVED PAGE STORY GRID ---------- */
+.stories{
+  background: transparent !important;
+}
+
+/* headline cards */
+.story{
+  background: rgba(31,54,84,0.45) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color:#e6eef7 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35) !important;
+}
+
+/* title text */
+.storyTitle{
+  color:#f2f6ff !important;
+}
+
+/* source/meta text */
+.storyMeta{
+  color: rgba(230,238,247,0.75) !important;
+}
+
+/* image background (removes white flash) */
+.storyImg{
+  background: rgba(11,19,35,0.55) !important;
+}
+
+/* ---------- MODAL FOOTER (was bright white bar) ---------- */
+#modalFooterBar,
+#modalCountdownBar{
+  background: rgba(16,28,49,0.88) !important;
+  border-top:1px solid rgba(255,255,255,0.12) !important;
+  color:#e6eef7 !important;
+}
+</style>
+
+
+<style id="midnight-fpitem-fix">
+/* =====================================================
+   FIX: Solved "headline boxes" (titles-only list uses .fpItem)
+   ===================================================== */
+.fpList{ background: transparent !important; }
+.fpItem{
+  background: rgba(31,54,84,0.45) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #e6eef7 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35) !important;
+  backdrop-filter: blur(6px);
+}
+.fpTitle{ color: #f2f6ff !important; }
+.fpSource{ color: rgba(230,238,247,0.75) !important; }
+.fpItem a{ color: inherit !important; }
+.fpItem a:hover{ text-decoration: underline; }
+</style>
+
 </head>
 <body>
 <div class="shell">
@@ -703,7 +1109,7 @@ html, body { overflow-x: hidden; }
     <div class="brandWrap">
       <div class="brand">YESTERDAY</div>
       <div class="mastheadRule" aria-hidden="true"></div>
-<div class="tagline">Guess the city behind yesterdays biggest headlines</div>
+<div class="tagline">Guess the city behind yesterday’s biggest headlines</div>
       <div class="sub">You get 5 guesses. Flip over each card for a clue.</div>
 </div>
     <div class="rightMeta">
@@ -724,7 +1130,7 @@ html, body { overflow-x: hidden; }
           <datalist id="citylist"></datalist>
         </div>
         <button id="submitBtn">Guess</button>
-        <button class="revealLink" class="ghost" id="revealBtn">Give up/<span>Reveal Answer</span></button>
+        <button class="revealLink ghost" id="revealBtn">Give up/<span>Reveal Answer</span></button>
       </div>
       <div class="count" id="count">0/5 guesses</div>
       <div class="error" id="error">Unknown city. Try a major city (e.g., Boston, Los Angeles).</div>
@@ -1831,7 +2237,7 @@ chosenCards.forEach((c,i)=>{
       <div class="face front">
         <div class="emojiFront">${c.emoji || "🗞️"}</div>
         <div class="veil"></div>
-        <div class="tag">Clue ${i+1}</div>
+        <div class="tag">Headline ${i+1}</div>
       </div>
       <div class="face back"><p>${c.clue}</p></div>
     </div>`;
