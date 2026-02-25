@@ -586,6 +586,16 @@ html, body { overflow-x: hidden; }
   outline-offset:2px;
 }
 
+
+/* streak display */
+.streakLine{
+  margin-top:10px;
+  font-family: "Old Standard TT", Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(15,23,42,.78);
+}
+
 </style>
 </head>
 <body>
@@ -652,32 +662,70 @@ html, body { overflow-x: hidden; }
 
 <script>
 
-  async function loadGeneratedCityPacks(){
-    try{
-      const res = await fetch('./citypacks.generated.json', {cache:'no-store'});
-      if(!res.ok) return null;
-      const data = await res.json();
-      if(!data || !Array.isArray(data.packs)) return null;
-      return data.packs;
-    }catch(e){
-      return null;
-    }
+// --- Answer & city aliases (canonicalization) ---
+const CITY_ALIASES = {
+  "New York": ["New York City","NYC"],
+};
+function canonicalCityName(name){
+  const n = normalizeName(name);
+  // direct match against pack names
+  for(const p of CITY_PACKS){
+    if(normalizeName(p.city) === n) return p.city;
   }
 
 
-// --- Answer aliases ---
-const ANSWER_ALIASES = {
-  "New York City": ["New York", "NYC"]
-};
-function normalizeName(s){
-  return (s||"").toLowerCase().replace(/[^a-z\s]/g,"").replace(/\s+/g," ").trim();
+// --- Streak tracking (local-only) ---
+function getStreakState(){
+  try{
+    return JSON.parse(localStorage.getItem("yesterday_streak") || "{}");
+  }catch(e){ return {}; }
 }
-function isCorrectGuess(guess, answer){
-  const g = normalizeName(guess);
-  const a = normalizeName(answer);
-  if(g === a) return true;
-  const aliases = ANSWER_ALIASES[answer] || [];
-  return aliases.some(x => normalizeName(x) === g);
+function setStreakState(state){
+  localStorage.setItem("yesterday_streak", JSON.stringify(state));
+}
+function dateKeyToInt(k){
+  // k is YYYY-MM-DD
+  return parseInt(k.replaceAll("-",""), 10);
+}
+function prevDateKeyET(dateKey){
+  // compute previous day from YYYY-MM-DD safely using UTC math
+  const [y,m,d] = dateKey.split("-").map(n=>parseInt(n,10));
+  const dt = new Date(Date.UTC(y, m-1, d));
+  dt.setUTCDate(dt.getUTCDate()-1);
+  const yy = dt.getUTCFullYear();
+  const mm = String(dt.getUTCMonth()+1).padStart(2,"0");
+  const dd = String(dt.getUTCDate()).padStart(2,"0");
+  return `${yy}-${mm}-${dd}`;
+}
+function updateStreakOnSolve(todayKey){
+  const st = getStreakState();
+  if(st.lastSolvedKey === todayKey){
+    return st; // already solved today
+  }
+  const yesterdayKey = prevDateKeyET(todayKey);
+  let cur = 1;
+  if(st.lastSolvedKey === yesterdayKey){
+    cur = (st.currentStreak || 0) + 1;
+  }
+  st.currentStreak = cur;
+  st.maxStreak = Math.max(st.maxStreak || 0, cur);
+  st.lastSolvedKey = todayKey;
+  setStreakState(st);
+  return st;
+}
+function getStreakDisplay(){
+  const st = getStreakState();
+  return {
+    current: st.currentStreak || 0,
+    best: st.maxStreak || 0
+  };
+}
+
+  // alias match
+  for(const [canon, arr] of Object.entries(CITY_ALIASES)){
+    if(arr.some(a => normalizeName(a) === n)) return canon;
+  }
+  return name;
 }
 
 
@@ -924,10 +972,10 @@ const CITY_PACKS = [{
 {emoji:"🏎️", clue:"Yesterday, a fresh update dropped on cota Or Motorsport Event Update."}
     ],
     stories:[
-      {headline:"Live Music Festival Or Venue Update", source:"Google News", url:"https://news.google.com/search?q=Austin%20Live%20Music%20Festival%20Or%20Venue%20Update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"State Legislature Vote Or Policy Move", source:"Google News", url:"https://news.google.com/search?q=Austin%20State%20Legislature%20Vote%20Or%20Policy%20Move%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Restaurant Opening Or Food Scene Buzz", source:"Google News", url:"https://news.google.com/search?q=Austin%20Restaurant%20Opening%20Or%20Food%20Scene%20Buzz%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Cota Or Motorsport Event Update", source:"Google News", url:"https://news.google.com/search?q=Austin%20Cota%20Or%20Motorsport%20Event%20Update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Live Music Festival Or Venue Update", source:"AP News", url:"https://apnews.com/"},
+      {headline:"State Legislature Vote Or Policy Move", source:"Reuters", url:"https://www.reuters.com/world/us/"},
+      {headline:"Restaurant Opening Or Food Scene Buzz", source:"CNN", url:"https://www.cnn.com/travel"},
+      {headline:"Cota Or Motorsport Event Update", source:"ESPN", url:"https://www.espn.com/f1/"}
     ]
   },
 
@@ -955,7 +1003,7 @@ const CITY_PACKS = [{
   },
 
 {
-    city:"New York City",
+    city:"New York",
     lat:40.7128,lng:-74.006,
     cards:[
       {emoji:"🗽", clue:"Yesterday, city hall news broke — mayor Or City Hall Announcement."},
@@ -978,7 +1026,7 @@ const CITY_PACKS = [{
   },
 
 {
-    city:"Washington, DC",
+    city:"Washington",
     lat:38.9072,lng:-77.0369,
     cards:[
       {emoji:"🏛️", clue:"Yesterday, government headlines landed — congress Vote Or Hearing."},
@@ -1026,10 +1074,16 @@ const CITY_PACKS = [{
       {emoji:"🍣", clue:"Yesterday, a culinary accolade reshaped the dining conversation."}
     ],
     stories:[
-      {headline:"High-speed rail timetable update affects commuters", source:"Google News", url:"https://news.google.com/search?q=Miami%20High-speed%20rail%20timetable%20update%20affects%20commuters%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major gaming company unveils new title and console features", source:"Google News", url:"https://news.google.com/search?q=Miami%20Major%20gaming%20company%20unveils%20new%20title%20and%20console%20features%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Heavy rain warnings issued across metro area", source:"Google News", url:"https://news.google.com/search?q=Miami%20Heavy%20rain%20warnings%20issued%20across%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Restaurant earns top international dining honor", source:"Google News", url:"https://news.google.com/search?q=Miami%20Restaurant%20earns%20top%20international%20dining%20honor%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"High-speed rail timetable update affects commuters", source:"BBC", url:"https://www.bbc.com/news"},
+      {headline:"Major gaming company unveils new title and console features", source:"Reuters", url:"https://www.reuters.com/technology/"},
+      {headline:"Heavy rain warnings issued across metro area", source:"AP", url:"https://apnews.com/"},
+      {headline:"Restaurant earns top international dining honor", source:"CNN", url:"https://www.cnn.com/world"}
+    ]
+  },
+
+{headline:"Port Or Cruise Terminal Update", source:"Google News", url:"https://news.google.com/search?q=Miami%20port%20or%20cruise%20terminal%20update%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Flood Watch Or Severe Weather", source:"Google News", url:"https://news.google.com/search?q=Miami%20flood%20watch%20or%20severe%20weather%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
 
@@ -1145,9 +1199,22 @@ const CITY_PACKS = [{
     ],
     stories:[
       {headline:"New cycling plan expands car‑free zones", source:"BBC", url:"https://www.bbc.com/news/world-europe"},
-      {headline:"Historic theater reopens with acclaimed performance", source:"Google News", url:"https://news.google.com/search?q=Denver%20Historic%20theater%20reopens%20with%20acclaimed%20performance%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Historic theater reopens with acclaimed performance", source:"Reuters", url:"https://www.reuters.com/lifestyle/"},
       {headline:"Court decision sparks nationwide debate", source:"AP", url:"https://apnews.com/hub/europe"},
-      {headline:"Tourism surge boosts local businesses", source:"Google News", url:"https://news.google.com/search?q=Denver%20Tourism%20surge%20boosts%20local%20businesses%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Tourism surge boosts local businesses", source:"CNN", url:"https://www.cnn.com/europe"}
+    ]
+  },
+
+{emoji:"🚴", clue:"Yesterday, a fresh update dropped on bike Lane Or Transit Project."}
+    ],
+    stories:[
+      {headline:"Snowstorm Or Mountain Travel Alert", source:"Google News", url:"https://news.google.com/search?q=Denver%20snowstorm%20or%20mountain%20travel%20alert%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Nuggets Headline", source:"Google News", url:"https://news.google.com/search?q=Denver%20Nuggets%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Den Airport Delay Or Expansion", source:"Google News", url:"https://news.google.com/search?q=Denver%20DEN%20airport%20delay%20or%20expansion%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Bike Lane Or Transit Project", source:"Google News", url:"https://news.google.com/search?q=Denver%20bike%20lane%20or%20transit%20project%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
 
@@ -1258,10 +1325,27 @@ const CITY_PACKS = [{
       {emoji:"🌧️", clue:"Yesterday, forecasts and umbrellas dominated coverage."}
     ],
     stories:[
-      {headline:"Underground service interruption affects morning travel", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20Underground%20service%20interruption%20affects%20morning%20travel%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government outlines new economic measures", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20Government%20outlines%20new%20economic%20measures%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Underground service interruption affects morning travel", source:"BBC", url:"https://www.bbc.com/news/uk"},
+      {headline:"Government outlines new economic measures", source:"Reuters", url:"https://www.reuters.com/world/uk/"},
       {headline:"Music festival draws record attendance", source:"AP", url:"https://apnews.com/entertainment"},
-      {headline:"Storm system brings heavy showers", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20Storm%20system%20brings%20heavy%20showers%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Storm system brings heavy showers", source:"CNN", url:"https://www.cnn.com/uk"}
+    ]
+  },
+
+{emoji:"🏈", clue:"Yesterday, it was all anyone could talk about: falcons."},
+
+{emoji:"🎬", clue:"Yesterday, the front page practically screamed about georgia Film Industry News."},
+
+{emoji:"🚧", clue:"Yesterday, a fresh update dropped on major Highway Closure."}
+    ],
+    stories:[
+      {headline:"Atl Airport Disruption", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20ATL%20airport%20disruption%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Falcons Headline", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20Falcons%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Georgia Film Industry News", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20Georgia%20film%20industry%20news%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Major Highway Closure", source:"Google News", url:"https://news.google.com/search?q=Atlanta%20major%20highway%20closure%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
 
@@ -1362,10 +1446,14 @@ const CITY_PACKS = [{
       {emoji:"☀️", clue:"Yesterday, temperatures climbed into headlines."}
     ],
     stories:[
-      {headline:"Beach safety warnings issued after rough surf", source:"Google News", url:"https://news.google.com/search?q=Nashville%20Beach%20safety%20warnings%20issued%20after%20rough%20surf%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Big match victory energizes fans", source:"Google News", url:"https://news.google.com/search?q=Nashville%20Big%20match%20victory%20energizes%20fans%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Beach safety warnings issued after rough surf", source:"ABC", url:"https://www.abc.net.au/news/"},
+      {headline:"Big match victory energizes fans", source:"Reuters", url:"https://www.reuters.com/sports/"},
       {headline:"Harbor development proposal unveiled", source:"BBC", url:"https://www.bbc.com/news/world-australia"},
       {headline:"Heat advisory prompts public warnings", source:"AP", url:"https://apnews.com/hub/australia"}
+    ]
+  },
+
+{headline:"Storm Advisory", source:"Google News", url:"https://news.google.com/search?q=Nashville%20storm%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
 
@@ -1485,10 +1573,18 @@ const CITY_PACKS = [{
       {emoji:"🎬", clue:"Yesterday, film chatter stole the spotlight."}
     ],
     stories:[
-      {headline:"Home team game result trends nationwide", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20Home%20team%20game%20result%20trends%20nationwide%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"City announces new housing initiative", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20City%20announces%20new%20housing%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Highway maintenance disrupts traffic", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20Highway%20maintenance%20disrupts%20traffic%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Festival lineup reveals major premieres", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20Festival%20lineup%20reveals%20major%20premieres%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
+      {headline:"Home team game result trends nationwide", source:"TSN", url:"https://www.tsn.ca/"},
+      {headline:"City announces new housing initiative", source:"CBC", url:"https://www.cbc.ca/news"},
+      {headline:"Highway maintenance disrupts traffic", source:"Global News", url:"https://globalnews.ca/"},
+      {headline:"Festival lineup reveals major premieres", source:"Variety", url:"https://variety.com/"}
+    ]
+  },
+
+{headline:"Transit Update Skytrain", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20transit%20update%20SkyTrain%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Canucks Headline", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20Canucks%20headline%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
+
+{headline:"Storm Or Flood Advisory", source:"Google News", url:"https://news.google.com/search?q=Vancouver%20storm%20or%20flood%20advisory%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
 
@@ -1605,176 +1701,6 @@ const CITY_PACKS = [{
 
 {headline:"Storm Warning", source:"Google News", url:"https://news.google.com/search?q=Sydney%20storm%20warning%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
     ]
-  },
-
-{
-    city:"Berlin",
-    lat:52.52,lng:13.405,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Berlin%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Berlin%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Berlin%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-
-{
-    city:"Madrid",
-    lat:40.4168,lng:-3.7038,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Madrid%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Madrid%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Madrid%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-
-{
-    city:"Rome",
-    lat:41.9028,lng:12.4964,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Rome%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Rome%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Rome%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-
-{
-    city:"Barcelona",
-    lat:41.3851,lng:2.1734,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Barcelona%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Barcelona%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Barcelona%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-
-{
-    city:"Amsterdam",
-    lat:52.3676,lng:4.9041,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Amsterdam%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Amsterdam%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Amsterdam%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-
-{
-    city:"Dubai",
-    lat:25.2048,lng:55.2708,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Dubai%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Dubai%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Dubai%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-
-{
-    city:"Singapore",
-    lat:1.3521,lng:103.8198,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Singapore%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Singapore%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Singapore%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-
-{
-    city:"Hong Kong",
-    lat:22.3193,lng:114.1694,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Hong%20Kong%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Hong%20Kong%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Hong%20Kong%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-
-{
-    city:"Seoul",
-    lat:37.5665,lng:126.978,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Seoul%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Seoul%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Seoul%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-
-{
-    city:"Mexico City",
-    lat:19.4326,lng:-99.1332,
-    cards:[
-      {emoji:"🚇", clue:"Yesterday, commuters woke to a transit update that dominated morning chatter."},
-      {emoji:"🏛️", clue:"Yesterday, policymakers made an announcement that led every broadcast."},
-      {emoji:"🎭", clue:"Yesterday, the culture desk focused on a major opening night."},
-      {emoji:"🌧️", clue:"Yesterday, weather alerts became the talk of the day."}
-    ],
-    stories:[
-      {headline:"Transit authority announces service changes", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20Transit%20authority%20announces%20service%20changes%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Government unveils new policy initiative", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20Government%20unveils%20new%20policy%20initiative%20when%3A21d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Major arts event draws large crowds", source:"BBC", url:"https://www.bbc.com/news/world"},
-      {headline:"Weather warnings issued across the metro area", source:"Google News", url:"https://news.google.com/search?q=Mexico%20City%20Weather%20warnings%20issued%20across%20the%20metro%20area%20when%3A21d&hl=en-US&gl=US&ceid=US:en"}
-    ]
   }
 ];
 // ----- Build today's puzzle: choose a city pack deterministically & ensure different from yesterday -----
@@ -1787,14 +1713,7 @@ function pickPack(key){
   const r = makeRand(hashDate(key) ^ 0xBEEFCAFE);
   return Math.floor(r()*CITY_PACKS.length);
 }
-const TODAY_ROTATE = 2; // temporary bump to switch today's city
-(async ()=>{
-  const generated = await loadGeneratedCityPacks();
-  if(generated && generated.length){
-    // Replace embedded packs with freshly generated packs (direct publisher URLs when available)
-    CITY_PACKS = generated;
-  }
-
+const TODAY_ROTATE = 3; // temporary bump to switch today's city
 let packIndex = pickPack(dayKey);
 packIndex = (packIndex + TODAY_ROTATE) % CITY_PACKS.length;
 // rotate to a new city today (testing)
@@ -1930,7 +1849,7 @@ https://dcmetrocentric.github.io/yesterday/`;
   chosenStories.forEach((st)=>{
     const el=document.createElement("div");
     el.className="fpItem";
-    el.innerHTML = `<a href="${st.url}" target="_blank" rel="noopener noreferrer">
+    el.innerHTML = `<a href="${st.url}" target="_self" rel="noopener noreferrer">
         <div class="fpTitle">${st.headline}</div>
         <div class="fpSource">${st.source}</div>
       </a>`;
@@ -2078,14 +1997,13 @@ document.addEventListener('DOMContentLoaded', function(){
       }
       if(direct){
         a.href = decodeURIComponent(direct);
-        a.rel = "noopener noreferrer";
+        a
         a.target = "_blank";
       }
     }catch(e){}
   });
 });
-
-})();
 </script>
+
 </body>
 </html>
