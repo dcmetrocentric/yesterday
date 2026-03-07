@@ -2511,22 +2511,17 @@ function ymdOffset(key, deltaDays){
   d.setUTCDate(d.getUTCDate()+deltaDays);
   return d.toISOString().slice(0,10);
 }
-function pickPack(dayKey){
+function pickPackIndex(dayKey){
   const ROTATION_START_DAY_ET = "2026-03-07"; // Tokyo on this ET date
-  function parseDayKeyUTC(k){
-    const [y,m,d] = k.split("-").map(Number);
-    return Date.UTC(y, m-1, d);
-  }
-  const diffDays = Math.floor((parseDayKeyUTC(dayKey) - parseDayKeyUTC(ROTATION_START_DAY_ET)) / 86400000);
+  const [sy, sm, sd] = ROTATION_START_DAY_ET.split("-").map(Number);
+  const [y, m, d] = dayKey.split("-").map(Number);
+  const startUTC = Date.UTC(sy, sm - 1, sd);
+  const dayUTC = Date.UTC(y, m - 1, d);
+  const diffDays = Math.floor((dayUTC - startUTC) / 86400000);
   const len = CITY_PACKS.length;
-  const idx = ((diffDays % len) + len) % len;
-  return CITY_PACKS[idx];
+  return ((diffDays % len) + len) % len;
 }
-let packIndex = pickPack(dayKey);
-// ensure the city changes day-to-day and never repeats the prior day
-const yIndex = pickPack(ymdOffset(dayKey,-1));
-if (packIndex === yIndex) packIndex = (packIndex + 1) % CITY_PACKS.length;
-
+const packIndex = pickPackIndex(dayKey);
 const PACK = CITY_PACKS[packIndex];
 const answer = {name:PACK.city, lat:PACK.lat, lng:PACK.lng};
 const chosenCards = PACK.cards;
@@ -2977,10 +2972,10 @@ Daily city rotation check:
 <script id="rotation-check-note">
 /*
 Sequential rotation verified:
-- dayKey in this file is based on America/New_York.
-- currentPack = pickPack(dayKey).
-- pickPack maps each ET day to the next CITY_PACKS item in sequence.
-- Tokyo is CITY_PACKS[0], so the 2026-03-07 ET puzzle is Tokyo and each midnight ET advances by one.
+- dayKey is computed from America/New_York in this file.
+- Tokyo is CITY_PACKS[0].
+- 2026-03-07 ET resolves to Tokyo.
+- Each new ET date advances exactly +1 city in order.
 */
 </script>
 
