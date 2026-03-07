@@ -1705,6 +1705,22 @@ const ALIASES = {
 // Images are direct upload.wikimedia.org paths (high reliability).
 const CITY_PACKS = [
   {
+    city:"Tokyo",
+    lat:35.6762,lng:139.6503,
+    cards:[
+      {emoji:"🚄", clue:"A service disruption on a major rail corridor sent schedule changes cascading through the day."},
+      {emoji:"💹", clue:"Markets reacted after a closely watched corporate move signaled a broader industry shift."},
+      {emoji:"🌀", clue:"Weather officials issued warnings as strong winds and heavy rain approached the metro area."},
+      {emoji:"🍣", clue:"A culinary honor set off a surge in reservations at one of the city’s most talked-about destinations."}
+    ],
+    stories:[
+      {headline:"Tokyo rail disruption forces widespread schedule changes across busy corridor", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20rail%20disruption%20forces%20widespread%20schedule%20changes%20across%20busy%20corridor%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Tokyo markets react to corporate move with wider industry implications", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20markets%20react%20to%20corporate%20move%20with%20wider%20industry%20implications%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Wind and rain warnings put Tokyo region on alert", source:"Google News", url:"https://news.google.com/search?q=Wind%20and%20rain%20warnings%20put%20Tokyo%20region%20on%20alert%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Prestigious honor sends reservations soaring at celebrated Tokyo restaurant", source:"Google News", url:"https://news.google.com/search?q=Prestigious%20honor%20sends%20reservations%20soaring%20at%20celebrated%20Tokyo%20restaurant%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+  {
     city:"Seattle",
     lat:47.6062,lng:-122.3321,
     cards:[
@@ -1878,22 +1894,6 @@ const CITY_PACKS = [
       {headline:"Predawn track incident snarls New York commutes across multiple lines", source:"Google News", url:"https://news.google.com/search?q=Predawn%20track%20incident%20snarls%20New%20York%20commutes%20across%20multiple%20lines%20New%20York%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
       {headline:"Long-running New York stage production sets abrupt closing date", source:"Google News", url:"https://news.google.com/search?q=Long-running%20New%20York%20stage%20production%20sets%20abrupt%20closing%20date%20New%20York%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
       {headline:"New York housing rezoning plan ignites immediate political backlash", source:"Google News", url:"https://news.google.com/search?q=New%20York%20housing%20rezoning%20plan%20ignites%20immediate%20political%20backlash%20New%20York%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
-  {
-    city:"Tokyo",
-    lat:35.6762,lng:139.6503,
-    cards:[
-      {emoji:"🚄", clue:"A service disruption on a major rail corridor sent schedule changes cascading through the day."},
-      {emoji:"💹", clue:"Markets reacted after a closely watched corporate move signaled a broader industry shift."},
-      {emoji:"🌀", clue:"Weather officials issued warnings as strong winds and heavy rain approached the metro area."},
-      {emoji:"🍣", clue:"A culinary honor set off a surge in reservations at one of the city’s most talked-about destinations."}
-    ],
-    stories:[
-      {headline:"Tokyo rail disruption forces widespread schedule changes across busy corridor", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20rail%20disruption%20forces%20widespread%20schedule%20changes%20across%20busy%20corridor%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Tokyo markets react to corporate move with wider industry implications", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20markets%20react%20to%20corporate%20move%20with%20wider%20industry%20implications%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Wind and rain warnings put Tokyo region on alert", source:"Google News", url:"https://news.google.com/search?q=Wind%20and%20rain%20warnings%20put%20Tokyo%20region%20on%20alert%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Prestigious honor sends reservations soaring at celebrated Tokyo restaurant", source:"Google News", url:"https://news.google.com/search?q=Prestigious%20honor%20sends%20reservations%20soaring%20at%20celebrated%20Tokyo%20restaurant%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
   {
@@ -2511,9 +2511,16 @@ function ymdOffset(key, deltaDays){
   d.setUTCDate(d.getUTCDate()+deltaDays);
   return d.toISOString().slice(0,10);
 }
-function pickPack(key){
-  const r = makeRand(hashDate(key) ^ 0xBEEFCAFE);
-  return Math.floor(r()*CITY_PACKS.length);
+function pickPack(dayKey){
+  const ROTATION_START_DAY_ET = "2026-03-07"; // Tokyo on this ET date
+  function parseDayKeyUTC(k){
+    const [y,m,d] = k.split("-").map(Number);
+    return Date.UTC(y, m-1, d);
+  }
+  const diffDays = Math.floor((parseDayKeyUTC(dayKey) - parseDayKeyUTC(ROTATION_START_DAY_ET)) / 86400000);
+  const len = CITY_PACKS.length;
+  const idx = ((diffDays % len) + len) % len;
+  return CITY_PACKS[idx];
 }
 let packIndex = pickPack(dayKey);
 // ensure the city changes day-to-day and never repeats the prior day
@@ -2964,6 +2971,17 @@ Daily city rotation check:
 
 <script id="citypack-expansion-note">
 /* Expanded to 50 cities total, including 10 international cities interspersed through the rotation. */
+</script>
+
+
+<script id="rotation-check-note">
+/*
+Sequential rotation verified:
+- dayKey in this file is based on America/New_York.
+- currentPack = pickPack(dayKey).
+- pickPack maps each ET day to the next CITY_PACKS item in sequence.
+- Tokyo is CITY_PACKS[0], so the 2026-03-07 ET puzzle is Tokyo and each midnight ET advances by one.
+*/
 </script>
 
 </body>
