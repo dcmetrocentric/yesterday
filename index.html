@@ -6,7 +6,7 @@
   <meta property="og:title" content="Yesterday — Guess the City">
   <meta property="og:description" content="Four clues. One city.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="">
+  <meta property="og:url" content="https://playyesterday.com/">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Yesterday — Guess the City">
   <meta name="twitter:description" content="Four clues. One city.">
@@ -20,6 +20,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>Yesterday — Guess the City</title>
+<link rel="canonical" href="https://playyesterday.com/"/>
 <style>
 :root{
   --bg:#F2F0EA;--card:#fff;--ink:#0F172A;--muted:#64748B;--line:#E7E2D8;--radius:20px;
@@ -1340,6 +1341,41 @@ body::before{
 }
 </style>
 
+
+<style id="guess-visibility-fix">
+#guessCounter, .guessCounter, #guesses, .guesses {
+  color:#222 !important;
+  font-weight:700 !important;
+}
+</style>
+
+
+<style id="guess-counter-visibility">
+/* Make 0/5 Guesses darker and more visible */
+#guessCounter, .guessCounter, #guesses, .guesses, .guess-count, #guess-count {
+  color: #111 !important;
+  font-weight: 700 !important;
+}
+</style>
+
+
+<style id="guess-counter-visibility-v21">
+#guessCounter, .guessCounter, #guesses, .guesses, .guess-count, #guess-count,
+#guess, .guess, .guessDisplay, #guessDisplay {
+  color:#000000 !important;
+  font-weight:800 !important;
+}
+</style>
+
+
+<style id="v22-count-color-fix">
+/* Force the front page guess counter to be dark and readable */
+#count{
+  color:#000000 !important;
+  font-weight:800 !important;
+}
+</style>
+
 </head>
 <body>
 <div class="shell">
@@ -1473,37 +1509,31 @@ function getStreakDisplay(){
 
 
   function buildShareText(){
-    try {
-      const dayLabel = (typeof dayKey !== "undefined") ? dayKey : "";
-      const emojisLine = (typeof currentPack !== "undefined" && currentPack?.cards)
-        ? currentPack.cards.map(c=>c.emoji||"").join("")
-        : "";
-      const gridLine = (typeof guessGrid !== "undefined") ? guessGrid : "";
-      const solvedLine = (typeof solved !== "undefined" && solved)
-        ? `I got Yesterday in ${guesses}/5`
-        : `Revealed ${guesses}/5`;
-      return `YESTERDAY  ${dayLabel}
-  function buildShareDisplayText(){
-    const t = buildShareText();
-    const lines = t.split('\n');
-    const last = (lines[lines.length-1]||'').trim();
-    if(last.startsWith('http')) lines.pop();
-    return lines.join('\n');
-  }
-
+  try {
+    const dayLabel = (typeof dayKey !== "undefined") ? dayKey : "";
+    const emojisLine = (typeof currentPack !== "undefined" && currentPack?.cards)
+      ? currentPack.cards.map(c=>c.emoji||"").join("")
+      : "";
+    const gridLine = (typeof guessGrid !== "undefined") ? guessGrid : "";
+    const solvedLine = (typeof solved !== "undefined" && solved)
+      ? `I got Yesterday in ${guesses}/5`
+      : `Revealed ${guesses}/5`;
+    return `YESTERDAY  ${dayLabel}
 ${emojisLine}
 ${gridLine}
 ${solvedLine}`;
+  } catch(e) {
+    return `YESTERDAY
+${(typeof guessGrid !== "undefined") ? guessGrid : ""}
+${(typeof guesses !== "undefined") ? `I got Yesterday in ${guesses}/5` : ""}`;
   }
-catch(e) {
-      return `YESTERDAY  ${dayLabel}
-${emojisLine}
-${gridLine}
-${solvedLine}
-<>`;
-    }
-  }
+}
 
+
+
+  function buildShareDisplayText(){
+    return buildShareText();
+  }
 
   function storyImage(city, headline, i){
     const q = encodeURIComponent((city + " " + (headline||"")).replace(/[^a-zA-Z0-9\s]/g," ").trim());
@@ -1631,13 +1661,45 @@ const now = new Date();
 const dayKey = getNYDayKey(now);
 document.getElementById('puzzleId').textContent = "Puzzle " + dayKey;
 
-function nextMidnight(){
-  return new Date(nextNYMidnightUTCms());
+function nextMidnightET(){
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone:'America/New_York',
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit',
+    hourCycle:'h23'
+  }).formatToParts(now).reduce((a,p)=>{ if(p.type!=='literal') a[p.type]=p.value; return a; }, {});
+  const y = +parts.year, m = +parts.month, d = +parts.day;
+
+  let guess = new Date(Date.UTC(y, m-1, d+1, 0, 0, 0));
+  for(let i=0;i<3;i++){
+    const tzParts = new Intl.DateTimeFormat('en-US', {
+      timeZone:'America/New_York',
+      timeZoneName:'shortOffset'
+    }).formatToParts(guess);
+    const tzName = (tzParts.find(p=>p.type==='timeZoneName')||{}).value || 'GMT-5';
+    const match = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
+    const sign = match && match[1] === '-' ? -1 : 1;
+    const hh = match ? parseInt(match[2],10) : 5;
+    const mm = match && match[3] ? parseInt(match[3],10) : 0;
+    const offsetMin = sign * (hh*60 + mm);
+    guess = new Date(Date.UTC(y, m-1, d+1, 0, 0, 0) - offsetMin*60000);
+  }
+  return guess;
 }
 function tick(){
-  const diff = nextMidnight() - new Date();
-  const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
-  document.getElementById('timer').textContent = `Next puzzle in ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const diff = Math.max(0, nextMidnightET().getTime() - Date.now());
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  const timer = document.getElementById('timer');
+  if(timer){
+    timer.textContent = `Next puzzle in ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  const modalTimer = document.getElementById('modalCountdown');
+  if(modalTimer){
+    modalTimer.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
 }
 setInterval(tick,1000); tick();
 
@@ -1704,22 +1766,6 @@ const ALIASES = {
 // Each pack includes 4 city-related cards + 4 city-related "front page" stories.
 // Images are direct upload.wikimedia.org paths (high reliability).
 const CITY_PACKS = [
-  {
-    city:"Tokyo",
-    lat:35.6762,lng:139.6503,
-    cards:[
-      {emoji:"🚄", clue:"A service disruption on a major rail corridor sent schedule changes cascading through the day."},
-      {emoji:"💹", clue:"Markets reacted after a closely watched corporate move signaled a broader industry shift."},
-      {emoji:"🌀", clue:"Weather officials issued warnings as strong winds and heavy rain approached the metro area."},
-      {emoji:"🍣", clue:"A culinary honor set off a surge in reservations at one of the city’s most talked-about destinations."}
-    ],
-    stories:[
-      {headline:"Tokyo rail disruption forces widespread schedule changes across busy corridor", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20rail%20disruption%20forces%20widespread%20schedule%20changes%20across%20busy%20corridor%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Tokyo markets react to corporate move with wider industry implications", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20markets%20react%20to%20corporate%20move%20with%20wider%20industry%20implications%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Wind and rain warnings put Tokyo region on alert", source:"Google News", url:"https://news.google.com/search?q=Wind%20and%20rain%20warnings%20put%20Tokyo%20region%20on%20alert%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
-      {headline:"Prestigious honor sends reservations soaring at celebrated Tokyo restaurant", source:"Google News", url:"https://news.google.com/search?q=Prestigious%20honor%20sends%20reservations%20soaring%20at%20celebrated%20Tokyo%20restaurant%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
-    ]
-  },
   {
     city:"Seattle",
     lat:47.6062,lng:-122.3321,
@@ -1894,6 +1940,22 @@ const CITY_PACKS = [
       {headline:"Predawn track incident snarls New York commutes across multiple lines", source:"Google News", url:"https://news.google.com/search?q=Predawn%20track%20incident%20snarls%20New%20York%20commutes%20across%20multiple%20lines%20New%20York%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
       {headline:"Long-running New York stage production sets abrupt closing date", source:"Google News", url:"https://news.google.com/search?q=Long-running%20New%20York%20stage%20production%20sets%20abrupt%20closing%20date%20New%20York%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
       {headline:"New York housing rezoning plan ignites immediate political backlash", source:"Google News", url:"https://news.google.com/search?q=New%20York%20housing%20rezoning%20plan%20ignites%20immediate%20political%20backlash%20New%20York%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
+    ]
+  },
+  {
+    city:"Tokyo",
+    lat:35.6762,lng:139.6503,
+    cards:[
+      {emoji:"🚄", clue:"A service disruption on a major rail corridor sent schedule changes cascading through the day."},
+      {emoji:"💹", clue:"Markets reacted after a closely watched corporate move signaled a broader industry shift."},
+      {emoji:"🌀", clue:"Weather officials issued warnings as strong winds and heavy rain approached the metro area."},
+      {emoji:"🍣", clue:"A culinary honor set off a surge in reservations at one of the city’s most talked-about destinations."}
+    ],
+    stories:[
+      {headline:"Tokyo rail disruption forces widespread schedule changes across busy corridor", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20rail%20disruption%20forces%20widespread%20schedule%20changes%20across%20busy%20corridor%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Tokyo markets react to corporate move with wider industry implications", source:"Google News", url:"https://news.google.com/search?q=Tokyo%20markets%20react%20to%20corporate%20move%20with%20wider%20industry%20implications%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Wind and rain warnings put Tokyo region on alert", source:"Google News", url:"https://news.google.com/search?q=Wind%20and%20rain%20warnings%20put%20Tokyo%20region%20on%20alert%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"},
+      {headline:"Prestigious honor sends reservations soaring at celebrated Tokyo restaurant", source:"Google News", url:"https://news.google.com/search?q=Prestigious%20honor%20sends%20reservations%20soaring%20at%20celebrated%20Tokyo%20restaurant%20Tokyo%20when%3A14d&hl=en-US&gl=US&ceid=US:en"}
     ]
   },
   {
@@ -2512,14 +2574,15 @@ function ymdOffset(key, deltaDays){
   return d.toISOString().slice(0,10);
 }
 function pickPackIndex(dayKey){
-  const ROTATION_START_DAY_ET = "2026-03-07"; // Tokyo on this ET date
-  const [sy, sm, sd] = ROTATION_START_DAY_ET.split("-").map(Number);
-  const [y, m, d] = dayKey.split("-").map(Number);
-  const startUTC = Date.UTC(sy, sm - 1, sd);
-  const dayUTC = Date.UTC(y, m - 1, d);
-  const diffDays = Math.floor((dayUTC - startUTC) / 86400000);
+  const rotationStartIndex = 7; // 8th city pack in CITY_PACKS
+  const ROTATION_START_DAY_KEY = "2026-03-10"; // Austin on this ET date
+  function parseDayKeyUTC(k){
+    const [y,m,d] = k.split("-").map(Number);
+    return Date.UTC(y, m-1, d);
+  }
+  const diffDays = Math.floor((parseDayKeyUTC(dayKey) - parseDayKeyUTC(ROTATION_START_DAY_KEY)) / 86400000);
   const len = CITY_PACKS.length;
-  return ((diffDays % len) + len) % len;
+  return ((rotationStartIndex + diffDays) % len + len) % len;
 }
 const packIndex = pickPackIndex(dayKey);
 const PACK = CITY_PACKS[packIndex];
@@ -2632,7 +2695,7 @@ ${storyEmojis}
 ${boxes}
 ${win ? `I got Yesterday in ${guesses.length}/${MAX}` : `I gave up on Yesterday`}`;
   const resultsWithUrl = resultsNoUrl + `
-https://dcmetrocentric.github.io/yesterday/`;
+https://playyesterday.com/`;
 
   document.getElementById("modal").style.display="flex";
   document.getElementById("resultTitle").textContent = win ? "Solved!" : "Revealed";
@@ -2645,6 +2708,8 @@ https://dcmetrocentric.github.io/yesterday/`;
   document.getElementById("shareBox").textContent = resultsNoUrl;
   window.__yShareNoUrl = resultsNoUrl;
   window.__yShareWithUrl = resultsWithUrl;
+  window.__ySolvedWin = win;
+  window.__ySolvedGuessCount = guesses.length;
 
   // render stories (titles only)
   const stories=document.getElementById("stories");
@@ -2660,12 +2725,21 @@ https://dcmetrocentric.github.io/yesterday/`;
   });
 }
 
-// share -> native share sheet or SMS compose
+// share -> on mobile open draft text message directly; desktop falls back to native share or SMS
 document.getElementById("shareBtn").onclick=async()=>{
-  const resultsText = window.__yShareNoUrl || document.getElementById("shareBox").textContent;
-  const smsText = window.__yShareWithUrl || (resultsText + "\nhttps://dcmetrocentric.github.io/yesterday/");
-if(navigator.share){ try{ await navigator.share({ title:"Yesterday", text: resultsText, url: "https://dcmetrocentric.github.io/yesterday/" }); return; }catch(e){} }
-  window.location.href="sms:?&body="+encodeURIComponent(smsText);
+  const resultsText = buildShareText();
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
+  if(isMobile){
+    window.location.href = "sms:&body=" + encodeURIComponent("PlayYesterday.com\n\n" + resultsText);
+    return;
+  }
+  if(navigator.share){
+    try{
+      await navigator.share({ title:"Yesterday", text: resultsText });
+      return;
+    }catch(e){}
+  }
+  window.location.href = "sms:&body=" + encodeURIComponent("PlayYesterday.com\n\n" + resultsText);
 };
 
 updateCount();
@@ -2969,13 +3043,176 @@ Daily city rotation check:
 </script>
 
 
-<script id="rotation-check-note">
+<script id="rotation-v12-note">
 /*
-Sequential rotation verified:
-- dayKey is computed from America/New_York in this file.
-- Tokyo is CITY_PACKS[0].
-- 2026-03-07 ET resolves to Tokyo.
-- Each new ET date advances exactly +1 city in order.
+Working baseline restored from v10 (cards render correctly).
+Sequential rotation now uses the existing CITY_PACKS order.
+Today's ET puzzle is anchored to CITY_PACKS[7] = "Austin".
+Each new America/New_York date advances exactly +1 city.
+*/
+</script>
+
+
+<script id="mobile-sms-share-note">
+/* On mobile, tapping Share now opens a draft SMS directly instead of the native share sheet. */
+</script>
+
+
+<script id="v15-fix-note">
+/* v15:
+   - restored from v13 working-cards baseline
+   - share text reverted to classic 4-line result format with no URL
+   - mobile share opens SMS draft with only the result text
+*/
+</script>
+
+
+<script id="v16-share-countdown-fix">
+/* Robust share formatting + reliable countdown updates */
+(function(){
+  function msUntilNextMidnightET(){
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone:'America/New_York',
+      year:'numeric', month:'2-digit', day:'2-digit'
+    }).formatToParts(now).reduce((a,p)=>{ if(p.type!=='literal') a[p.type]=p.value; return a; }, {});
+    const y = +parts.year, m = +parts.month, d = +parts.day;
+
+    // Compute next NY midnight in UTC using NY offset at the target instant
+    let utcGuess = new Date(Date.UTC(y, m-1, d+1, 0, 0, 0));
+    for(let i=0;i<3;i++){
+      const tz = new Intl.DateTimeFormat('en-US', {
+        timeZone:'America/New_York',
+        timeZoneName:'shortOffset'
+      }).formatToParts(utcGuess);
+      const tzName = (tz.find(p=>p.type==='timeZoneName')||{}).value || 'GMT-5';
+      const match = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
+      const sign = match && match[1] === '-' ? -1 : 1;
+      const hh = match ? parseInt(match[2],10) : 5;
+      const mm = match && match[3] ? parseInt(match[3],10) : 0;
+      const offMin = sign * (hh*60 + mm);
+      utcGuess = new Date(Date.UTC(y, m-1, d+1, 0, 0, 0) - offMin*60000);
+    }
+    return Math.max(0, utcGuess.getTime() - now.getTime());
+  }
+
+  function fmtCountdown(ms){
+    const total = Math.max(0, Math.floor(ms/1000));
+    const h = String(Math.floor(total/3600)).padStart(2,'0');
+    const m = String(Math.floor((total%3600)/60)).padStart(2,'0');
+    const s = String(total%60).padStart(2,'0');
+    return `${h}:${m}:${s}`;
+  }
+
+  function syncCountdowns(){
+    const text = fmtCountdown(msUntilNextMidnightET());
+    const header = document.getElementById('timer');
+    if(header) header.textContent = `Next puzzle in ${text}`;
+    const modal = document.getElementById('modalCountdown');
+    if(modal) modal.textContent = text;
+  }
+
+  window.buildShareText = function(){
+    const dayLabel = (typeof dayKey !== "undefined") ? dayKey : "";
+    const emojisLine = (typeof chosenCards !== "undefined" && Array.isArray(chosenCards))
+      ? chosenCards.map(c => c.emoji || "").join("")
+      : "";
+    const boxesLine = (typeof guesses !== "undefined" && Array.isArray(guesses) && typeof heat === "function")
+      ? guesses.map(heat).join("")
+      : "";
+    const win = typeof window.__ySolvedWin === "boolean"
+      ? window.__ySolvedWin
+      : ((document.getElementById("resultTitle")||{}).textContent === "Solved!");
+    const guessCount = (typeof window.__ySolvedGuessCount === "number")
+      ? window.__ySolvedGuessCount
+      : ((typeof guesses !== "undefined" && Array.isArray(guesses)) ? guesses.length : 0);
+
+    return `YESTERDAY  ${dayLabel}
+${emojisLine}
+${boxesLine}
+${win ? `I got Yesterday in ${guessCount}/5` : `I gave up on Yesterday`}`;
+  };
+
+  const shareBtn = document.getElementById("shareBtn");
+  if(shareBtn){
+    shareBtn.onclick = async()=>{
+      const resultsText = window.buildShareText();
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
+      if(isMobile){
+        window.location.href = "sms:&body=" + encodeURIComponent("PlayYesterday.com\n\n" + resultsText);
+        return;
+      }
+      if(navigator.share){
+        try{
+          await navigator.share({ title:"Yesterday", text: resultsText });
+          return;
+        }catch(e){}
+      }
+      window.location.href = "sms:&body=" + encodeURIComponent("PlayYesterday.com\n\n" + resultsText);
+    };
+  }
+
+  syncCountdowns();
+  setInterval(syncCountdowns, 1000);
+  document.addEventListener("DOMContentLoaded", syncCountdowns);
+  document.addEventListener("click", ()=>setTimeout(syncCountdowns, 60));
+})();
+</script>
+
+
+<script id="v19-option1-share-fix">
+(function(){
+  window.buildShareText = function(){
+    const dayLabel = (typeof dayKey !== "undefined") ? dayKey : "";
+    const emojisLine = (typeof chosenCards !== "undefined" && Array.isArray(chosenCards))
+      ? chosenCards.map(c => c.emoji || "").join("")
+      : "";
+    const boxesLine = (typeof guesses !== "undefined" && Array.isArray(guesses) && typeof heat === "function")
+      ? guesses.map(heat).join("")
+      : "";
+    const win = typeof window.__ySolvedWin === "boolean"
+      ? window.__ySolvedWin
+      : ((document.getElementById("resultTitle")||{}).textContent === "Solved!");
+    const guessCount = (typeof window.__ySolvedGuessCount === "number")
+      ? window.__ySolvedGuessCount
+      : ((typeof guesses !== "undefined" && Array.isArray(guesses)) ? guesses.length : 0);
+
+    return `YESTERDAY  ${dayLabel}
+${emojisLine}
+${boxesLine}
+${win ? `I got Yesterday in ${guessCount}/5` : `I gave up on Yesterday`}
+
+PlayYesterday.com`;
+  };
+
+  const shareBtn = document.getElementById("shareBtn");
+  if(shareBtn){
+    shareBtn.onclick = async()=>{
+      const resultsText = window.buildShareText();
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
+      if(isMobile){
+        window.location.href = "sms:&body=" + encodeURIComponent(resultsText);
+        return;
+      }
+      if(navigator.share){
+        try{
+          await navigator.share({ title:"Yesterday", text: resultsText });
+          return;
+        }catch(e){}
+      }
+      window.location.href = "sms:&body=" + encodeURIComponent(resultsText);
+    };
+  }
+})();
+</script>
+
+
+<script id="v23-rotation-countdown-note">
+/*
+v23 fixes:
+- Countdown now targets the next America/New_York midnight correctly.
+- City rotation is truly sequential from a fixed ET anchor:
+  2026-03-10 ET = CITY_PACKS[7] (Austin), then +1 city each new ET date.
 */
 </script>
 
